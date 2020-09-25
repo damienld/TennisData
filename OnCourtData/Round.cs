@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Data.Linq.Mapping;
+﻿using System.Data.Linq.Mapping;
 using System.Collections.ObjectModel;
 
 namespace OnCourtData
-{
+{// { get; set; } //O preq, 1-2-3 Qualies, 8 RR, 4=1st, 10=1/2, 11 bronze, 12 final
     [Table(Name = "Rounds")]
     public class Round
     {
@@ -19,6 +15,12 @@ namespace OnCourtData
         public override string ToString()
         {
             return this.Name;
+        }
+
+        public Round(int aId, string aName)
+        {
+            Id = aId;
+            Name = aName;
         }
     }
 

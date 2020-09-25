@@ -10,7 +10,7 @@ namespace OnCourtData
         private long IdPlayer;
         private List<Match> ListMatches { get; set; }
         private DateTime StartingDate { get; set; }
-        public int SurfaceId { get; set; }
+        public string SurfacesId { get; set; }
         public string Level { get; set; }
         private int ServiceGamesPlayed { get; set; }
         private int ServicePointsPlayed { get; set; }
@@ -49,8 +49,8 @@ namespace OnCourtData
                 return PercentServiceGamesWon + PercentReturnGamesWon;
             }
         }
-        public ServiceAndReturnStatsForListMatchesOfPlayer(List<Match> aListMatches, DateTime aStartingDate, int aSurfaceId, long aIdPlayer
-            , List<int> aListTrnmtLevels)
+        public ServiceAndReturnStatsForListMatchesOfPlayer(List<Match> aListMatches, DateTime aStartingDate, List<int> aSurfacesId
+            , long aIdPlayer, List<int> aListTrnmtLevels, bool aIsIncludeQualies = false)
         {
             foreach (MatchDetailsWithOdds m in aListMatches)
                 if (m.ProcessedResult == null)
@@ -59,17 +59,24 @@ namespace OnCourtData
                 }
             ListMatches = aListMatches;
             StartingDate = aStartingDate;
-            SurfaceId = aSurfaceId;
+            if (aSurfacesId != null)
+                if (aSurfacesId.Count == 1)
+                    SurfacesId = aSurfacesId[0]+"";
+                else
+                    SurfacesId = string.Join("-", aSurfacesId.ToArray());
             IdPlayer = aIdPlayer;
+            int _idRoundMin = 0; //PreQ
+            if (!aIsIncludeQualies)
+                _idRoundMin = 4;
             Level = string.Join("-", aListTrnmtLevels.ToArray());
             List<Match> _list1 = ListMatches.Where(m => m.Id1 == IdPlayer && m.ListProcessedStats != null 
-            && m.ListProcessedStats[0].nbServiceGamesWon != -1).ToList();
+            && m.ListProcessedStats[0].nbServiceGamesWon != -1 && m.RoundId >= _idRoundMin).ToList();
             List<Match> _list2 = ListMatches.Where(m => m.Id2 == IdPlayer && m.ListProcessedStats != null 
-            && m.ListProcessedStats[1].nbServiceGamesWon != -1).ToList();
-            if (aSurfaceId > -1)
+            && m.ListProcessedStats[1].nbServiceGamesWon != -1 && m.RoundId >= _idRoundMin).ToList();
+            if (aSurfacesId != null)
             {
-                _list1 = _list1.Where(m => m.CourtId == aSurfaceId).ToList();
-                _list2 = _list2.Where(m => m.CourtId == aSurfaceId).ToList();
+                _list1 = _list1.Where(m => aSurfacesId.Contains(m.CourtId)).ToList();
+                _list2 = _list2.Where(m => aSurfacesId.Contains(m.CourtId)).ToList();
             }
             if (aListTrnmtLevels.Count > 0)
             {

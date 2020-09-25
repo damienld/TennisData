@@ -24,17 +24,50 @@ namespace OnCourtData
         public int nbServiceGamesWon { get; set; }
         public int nbReturnGamesPlayed { get; set; }
 
+        //return -1 sometimes
         public int getFirstServePct()
         {
-            return Convert.ToInt16(Math.Round(100.0 * FS_1 / FSOF_1, 0));
+            if (FSOF_1 <= 0)
+                return -1;
+            else
+                return Convert.ToInt16(Math.Round(100.0 * FS_1 / FSOF_1, 0));
         }
+        //return -1 sometimes
         public int getFirstServePctWon()
         {
-            return Convert.ToInt16(Math.Round(100.0 * W1S_1 / W1SOF_1, 0));
+            if (W1SOF_1 <= 0)
+                return -1;
+            else
+                return Convert.ToInt16(Math.Round(100.0 * W1S_1 / W1SOF_1, 0));
+        }
+        /// <summary>
+        /// return -1 sometimes
+        /// </summary>
+        /// <returns></returns>
+        public int getServePctWon()
+        {
+            if (W1SOF_1 + W2SOF_1 <= 0)
+                return -1;
+            else         
+                return Convert.ToInt16(Math.Round(100.0 * (W1S_1 + W2S_1) / (W1SOF_1 + W2SOF_1), 0));
+        }
+        /// <summary>
+        /// return -1 sometimes
+        /// </summary>
+        /// <returns></returns>
+        public int getReturnPctWon()
+        {
+            if (RPWOF_1 <= 0)
+                return -1;
+            else
+                return Convert.ToInt16(Math.Round(100.0 * (RPW_1) / (RPWOF_1), 0));
         }
         public int getSecondServePctWon()
         {
-            return Convert.ToInt16(Math.Round(100.0 * W2S_1 / W2SOF_1, 0));
+            if (W2SOF_1 <= 0)
+                return -1;
+            else
+                return Convert.ToInt16(Math.Round(100.0 * W2S_1 / W2SOF_1, 0));
         }
         /// <summary>
         /// Index Base 1
@@ -230,6 +263,12 @@ namespace OnCourtData
         /// </summary>
         [Column(Name = "MT")]
         public string MT { get; set; }
+
+        public TimeSpan getMatchTime()
+        {
+            return TimeSpan.ParseExact(MT, "hh\\:mm\\:ss", System.Globalization.CultureInfo.InvariantCulture);
+        }
+        
 
         public StatsForOneMatch(int aIndexStatForMatch)
         {

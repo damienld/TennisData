@@ -19,14 +19,14 @@ namespace OnCourtData
         protected bool IsATP { get; set; }
 
         [Column(Name = "ID_T", IsPrimaryKey = true, IsDbGenerated = true)]
-        /// <summary>
-        /// 1 to 6: "Hard", "Clay", "Indoor", "Carpet", "Grass", "Acrylic"
-        /// </summary>
-        public int Id { get; set; }
+
+        public long Id { get; set; }
 
         [Column(Name = "NAME_T")]
         public string Name { get; set; }
-
+        /// <summary>
+        /// 1 to 6: "Hard", "Clay", "Indoor", "Carpet", "Grass", "Acrylic"
+        /// </summary>
         [Column(Name = "ID_C_T")]
         public int? CourtId { get; set; }
         
@@ -34,12 +34,37 @@ namespace OnCourtData
         public DateTime? Date { get; set; }
 
         [Column(Name = "RANK_T")]
-        public byte Rank { get; set; }
+        /// <summary>
+        /// 0=ITF / ITF < 20K; 1=Challenger / ITF >=20 K;2=/ATP ; 3= M1000 4=GS 5=DC 6=Exhib/Juniors
+        /// </summary>
+        public int Rank { get; set; }
 
+        [System.ComponentModel.Browsable(false)]
+        public string TournamentSite { get; set; }
+
+        public long IdPreviousEdition { get; set; }
+
+        public string NameAndYear
+        {
+            get
+            {
+                return (Date!=null?Date.Value.Year.ToString():"") + " - " + Name + " (" +this.Id + "; Prev:" + IdPreviousEdition 
+                    + "; Site:"+ TournamentSite +")";
+            }
+        }
         public override string ToString()
         {
             return this.Name;
         }
+
+        public double? SpeedAdvanced { get; set; }
+        public double? SpeedBasic { get; set; }
+        public int? Humidity { get; set; }
+        public int? Wind { get; set; }
+        public int? GeoZone { get; set; }
+        public string Note1 { get; set; }
+        public string Note2 { get; set; }
+        public string WeatherLink { get; set; }
     }
 
     public class TournamentsCollection : ObservableCollection<Tournament>

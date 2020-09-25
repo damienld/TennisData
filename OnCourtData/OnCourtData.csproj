@@ -51,8 +51,9 @@
     <Compile Include="MatchDetailsWithOdds.cs" />
     <Compile Include="MsAccessGet.cs" />
     <Compile Include="OnCourtDb.cs" />
+    <Compile Include="Period.cs" />
     <Compile Include="Player.cs" />
-    <Compile Include="PriceStatsListMatchesForPlayer.cs" />
+    <Compile Include="StatsOnListMatchesForPlayer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -66,6 +67,7 @@
     <Compile Include="ServiceAndReturnStatsForListMatchesOfPlayer.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="SqlOnCourt.cs" />
+    <Compile Include="StatReportPlayer.cs" />
     <Compile Include="Stats.cs" />
     <Compile Include="StatsMatchesForPlayer.cs" />
     <Compile Include="Today.cs" />
@@ -79,6 +81,12 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\Common\Tools\MyTools\MyTools.csproj">
+      <Project>{cae4ad96-4260-4441-beb6-b6ec3cbeacba}</Project>
+      <Name>MyTools</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

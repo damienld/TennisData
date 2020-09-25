@@ -13,6 +13,8 @@ namespace OnCourtData
     {
         //private EntitySet<Match> link_Match = new EntitySet<Match>();
         //public List<Match> ListMatches {get; set;}
+        [System.ComponentModel.Browsable(false)]
+        public string Note { get; set; }
 
         [System.ComponentModel.Browsable(false)]
         [Column(Name = "ID_P", IsPrimaryKey = true, IsDbGenerated = true)]
@@ -27,8 +29,9 @@ namespace OnCourtData
             set; }
 
         [Column(Name = "DATE_P")]
-        public DateTime DateBorn { get; set; }
-
+        public DateTime? DateBorn { get; set; }
+        [System.ComponentModel.Browsable(false)]
+        public List<int> ListCategoriesId { get; set; }
         //public List<CategoriesPlayer> ListCategories { get; set; }
 
         /*[Association(Storage = "link_Match", OtherKey = "Id1, Id2, TournamentId, RoundId"
@@ -38,7 +41,7 @@ namespace OnCourtData
             get { return this.link_Match; }
             set { this.link_Match.Assign(value); } 
         }*/
-       
+
         /*private EntitySet<Ratings> link_Ratings = new EntitySet<Ratings>();
         [Association(Storage = "link_Ratings", OtherKey = "PlayerId"
             , ThisKey = "Id")]

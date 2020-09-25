@@ -41,6 +41,89 @@ namespace OnCourtData
                 MessageBox.Show(e.Message);
             }
         }
+        public StatsListMatchesForPlayer(List<MatchDetailsWithOdds> aListMatches, List<string> aPlayerInfoToSearch)
+        {
+            try
+            {
+                fListMatches = aListMatches;
+                foreach (MatchDetailsWithOdds m in fListMatches)
+                    if (m.ProcessedResult == null)
+                        m.readResult();
+                Win = fListMatches.Where(m => m.isCountForStatsWinOrLoss() &&  aPlayerInfoToSearch.IndexOf(m.Player1Info)>-1).Count();
+                Loss = fListMatches.Where(m => m.isCountForStatsWinOrLoss() && aPlayerInfoToSearch.IndexOf(m.Player2Info) > -1).Count();
+                List<MatchDetailsWithOdds> _listMatchPlayerFirst = fListMatches.Where(m => aPlayerInfoToSearch.IndexOf(m.Player1Info) > -1).ToList();
+                List<MatchDetailsWithOdds> _listMatchPlayerSecond = fListMatches.Where(m => aPlayerInfoToSearch.IndexOf(m.Player2Info) > -1).ToList();
+                SetsWon = _listMatchPlayerFirst.Sum(m => m.ProcessedResult.fNbSetsWonP1) + _listMatchPlayerSecond.Sum(m => m.ProcessedResult.fNbSetsWonP2);
+                SetsLost = _listMatchPlayerFirst.Sum(m => m.ProcessedResult.fNbSetsWonP2) + _listMatchPlayerSecond.Sum(m => m.ProcessedResult.fNbSetsWonP1);
+                SetXWon = new List<int>();
+                SetXLost = new List<int>();
+                for (int i = 0; i <= 4; i++)
+                {
+                    SetXWon.Add(fListMatches.Where
+                        (m => m.isCountAsSetXWonForStats(i, aPlayerInfoToSearch)).Count());
+                    SetXLost.Add(fListMatches.Where
+                        (m => m.isCountAsSetXWonForStats(i, aPlayerInfoToSearch)).Count());
+                }
+                Trace.WriteLine(Win + "-" + Loss + "; Sets:" + SetsWon + "-" + SetsLost + "; Set1:" + SetXWon[0] + "-" + SetXLost[0]);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        }
+        public StatsListMatchesForPlayer(List<MatchDetailsWithOdds> aListMatches, bool aIsFav)
+        {
+            try
+            {
+                fListMatches = aListMatches;
+                foreach (MatchDetailsWithOdds m in fListMatches)
+                    if (m.ProcessedResult == null)
+                        m.readResult();
+                if (aIsFav)
+                {
+                    Win = fListMatches.Where(m => m.isCountForStatsWinOrLoss() && m.Odds1 < m.Odds2).Count();
+                    Loss = fListMatches.Where(m => m.isCountForStatsWinOrLoss() && m.Odds1 > m.Odds2).Count();
+                }
+                else
+                {
+                    Win = fListMatches.Where(m => m.isCountForStatsWinOrLoss() && m.Odds2 < m.Odds1).Count();
+                    Loss = fListMatches.Where(m => m.isCountForStatsWinOrLoss() && m.Odds2 > m.Odds1).Count();
+                }
+                List<MatchDetailsWithOdds> _listMatchPlayerFirst = fListMatches.Where(m => m.Odds1 < m.Odds2).ToList();
+                List<MatchDetailsWithOdds> _listMatchPlayerSecond = fListMatches.Where(m => m.Odds2 < m.Odds1).ToList();
+                if (! aIsFav)
+                {
+                    _listMatchPlayerFirst = fListMatches.Where(m => m.Odds2 < m.Odds1).ToList();
+                    _listMatchPlayerSecond = fListMatches.Where(m => m.Odds1 < m.Odds2).ToList();
+                }
+                SetsWon = _listMatchPlayerFirst.Sum(m => m.ProcessedResult.fNbSetsWonP1) + _listMatchPlayerSecond.Sum(m => m.ProcessedResult.fNbSetsWonP2);
+                SetsLost = _listMatchPlayerFirst.Sum(m => m.ProcessedResult.fNbSetsWonP2) + _listMatchPlayerSecond.Sum(m => m.ProcessedResult.fNbSetsWonP1);
+                SetXWon = new List<int>();
+                SetXLost = new List<int>();
+                for (int i = 0; i <= 4; i++)
+                {
+                    if (aIsFav)
+                    {
+                        SetXWon.Add(fListMatches.Where
+                            (m => m.isCountAsSetXWonForStatsForFav(i)).Count());
+                        SetXLost.Add(fListMatches.Where
+                            (m => m.isCountAsSetXLostForStatsForFav(i)).Count());
+                    }
+                    else
+                    {
+                        SetXWon.Add(fListMatches.Where
+                            (m => m.isCountAsSetXWonForStatsForDog(i)).Count());
+                        SetXLost.Add(fListMatches.Where
+                            (m => m.isCountAsSetXLostForStatsForDog(i)).Count());
+                    }
+                }
+                Trace.WriteLine(Win + "-" + Loss + "; Sets:" + SetsWon + "-" + SetsLost + "; Set1:" + SetXWon[0] + "-" + SetXLost[0]);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        }
         public override string ToString()
         {
             return (Win + "-" + Loss + "; Sets:" + SetsWon + "-" + SetsLost + "; Set1:" + SetXWon[0] + "-" + SetXLost[0]);

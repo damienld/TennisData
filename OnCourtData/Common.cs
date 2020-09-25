@@ -40,8 +40,11 @@ namespace OnCourtData
                 aRank1 = 200;
                 aRank2 = 400;
             }
-            aRank1 = Math.Max(aRank - gap1, 1);
-            aRank2 = aRank + gap1;
+            else
+            {
+                aRank1 = Math.Max(aRank - gap1, 1);
+                aRank2 = aRank + gap1;
+            }
         }
     }
 }

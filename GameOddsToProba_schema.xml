@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<gameOdds-data xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+<record>
+	<gamePrice1>1</gamePrice1>
+	<gamePrice2>25</gamePrice2>
+	<probaPoint1>0.9</probaPoint1>
+	<probaPoint2>0.1</probaPoint2>
+	<pointPrice1>1.1</pointPrice1>
+	<pointPrice2>7</pointPrice2>
+</record>
+<record>
+	<gamePrice1>1.02</gamePrice1>
+	<gamePrice2>11</gamePrice2>
+	<probaPoint1>0.75</probaPoint1>
+	<probaPoint2>0.25</probaPoint2>
+	<pointPrice1>1.26</pointPrice1>
+	<pointPrice2>3.5</pointPrice2>
+</record>
+</gameOdds-data>
