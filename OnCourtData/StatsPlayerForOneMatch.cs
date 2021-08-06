@@ -7,22 +7,15 @@ using System.Collections.ObjectModel;
 
 namespace OnCourtData
 {
+    [Serializable]
     [Table(Name = "Stat_atp")]
-    public class StatsForOneMatch
+    public class StatsPlayerForOneMatch
     {
-        /*public Stats[] divideInto2IndividualStats()
-        {
-            Stats[] _tabStats = new Stats[2];
-            _tabStats[0] = new Stats
-            {
-                Id1 = this.Id1, Id2 = this.Id2, IdRound = this.IdRound, IdTournament = this.IdTournament,
-                FS_1 = this.FS_1,
-                FS_2 = this.FS_2
-            };
-        }*/
+        public int courtIndex { get; set; }
         public int nbServiceGamesPlayed { get; set; }
         public int nbServiceGamesWon { get; set; }
         public int nbReturnGamesPlayed { get; set; }
+        public int nbTBPlayed { get; set; }
 
         //return -1 sometimes
         public int getFirstServePct()
@@ -39,6 +32,62 @@ namespace OnCourtData
                 return -1;
             else
                 return Convert.ToInt16(Math.Round(100.0 * W1S_1 / W1SOF_1, 0));
+        }
+        public double getPctAceByPointsOnServe()
+        {
+            try
+            {
+                if (W1SOF_1 <= 0 || ACES_1 < 0)
+                    return -1;
+                else
+                    return Math.Round(100.0 * ACES_1 / FSOF_1, 1);
+            }
+            catch (Exception)
+            {
+                return -1;
+            }
+        }
+        public double getPctDfByPointsOnServe()
+        {
+            try
+            {
+                if (W1SOF_1 <= 0)
+                    return -1;
+                else
+                    return Math.Round(100.0 * DF_1 / FSOF_1, 1);
+            }
+            catch (Exception)
+            {
+                return -1;
+            }
+        }
+        public double getAceByGamesOnServe()
+        {
+            try
+            {
+                if (W1SOF_1 <= 0)
+                    return -1;
+                else
+                    return Math.Round(1.0 * ACES_1 / (nbServiceGamesPlayed+nbTBPlayed), 2);
+            }
+            catch (Exception)
+            {
+                return -1;
+            }
+        }
+        public double getDfByGamesOnServe()
+        {
+            try
+            {
+                if (W1SOF_1 <= 0)
+                    return -1;
+                else
+                    return Math.Round(1.0 * DF_1 / (nbServiceGamesPlayed + nbTBPlayed), 2);
+            }
+            catch (Exception)
+            {
+                return -1;
+            }
         }
         /// <summary>
         /// return -1 sometimes
@@ -270,13 +319,14 @@ namespace OnCourtData
         }
         
 
-        public StatsForOneMatch(int aIndexStatForMatch)
+        public StatsPlayerForOneMatch(int aIndexStatForMatch)
         {
             IndexStatForMatch = aIndexStatForMatch;
             MT = "";
             nbServiceGamesPlayed = -1;
             nbServiceGamesWon = -1;
             nbReturnGamesPlayed = -1;
+            nbTBPlayed = -1;
             FS_1 = -1;
             FSOF_1 = -1;
             ACES_1 = -1;

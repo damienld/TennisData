@@ -11,6 +11,18 @@ namespace OnCourtData
     [Table(Name = "Tours_atp")]
     public class Tournament
     {
+        public static string csvHeader = "Date,TrnId,Trn,TrnRk,TrnSite,"
+            + "CourtId";
+        public string ToCsvLine()
+        {
+            return $"{this.Date},{this.Id},{this.Name.Replace(",", ";")},{this.Rank},{this.TournamentSite}"
+                + $",{this.CourtId}"
+                ;
+        }
+        public void getAcesStats(List<MatchDetailsWithOdds> listMatches)
+        {
+
+        }
         public Tournament(bool aIsATP)
         {
             IsATP = aIsATP;

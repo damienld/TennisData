@@ -6,6 +6,7 @@ using MyTools;
 
 namespace OnCourtData
 {
+    [Serializable]
     public class MatchDetailsWithOdds: Match
     {
         public double? Odds1 { get; set; }

@@ -39,7 +39,8 @@ namespace OnCourtData
         /// <param name="aMaxPosOpp"></param>
         /// <param name="aIsBestOf5"></param>
         /// <param name="aListMatch"></param>
-        public void CalculateValuesForRow1OfMatchReport(List<int> aListCourtsId, int aMinPosOpp, int aMaxPosOpp, bool aIsBestOf5
+        public void CalculateValuesForRow1OfMatchReport(bool aIsAtp, List<int> aListCourtsId, int aMinPosOpp, int aMaxPosOpp
+            , bool aIsBestOf5
             , List<MatchDetailsWithOdds> aListMatch)
         {
             List<MatchDetailsWithOdds> _listMatchWherePlayerFirst = aListMatch.Where(m => m.Id1 == PlayerId).ToList();
@@ -54,7 +55,8 @@ namespace OnCourtData
             DateTime _dateForm2 = DateTime.Now.AddDays(-91);
             DateTime _dateForm3 = DateTime.Now.AddDays(-31);
 
-            StatsOnListMatchesForPlayer _priceStats = new StatsOnListMatchesForPlayer(aListMatch, PlayerId, aListCourtsId
+            StatsOnListMatchesForPlayer _priceStats = new StatsOnListMatchesForPlayer(aIsAtp
+                , aListMatch, PlayerId, aListCourtsId
                 , null, _dateForm1, _dateForm2, _dateForm3, true);
             ListStats.Add(new StatReportPlayer(false, "W/L", "", "", aListMatch.Where(m => m.isCountAsWinForStats(PlayerId)).Count()
                 , aListMatch.Where(m => m.isCountAsLossForStats(PlayerId) || m.isCountAsWinForStats(PlayerId)).Count(), true, 0, 0)
@@ -171,8 +173,8 @@ namespace OnCourtData
                 , aListMatch.Where(m => aListCourtsId.Contains(m.CourtId)).Sum(m => m.ProcessedResult.fNbSetsWonP2 + m.ProcessedResult.fNbSetsWonP1)
                 , true, _nbSetsWon/(_nbSetsCompleted*1.0), _indexPos + 3 + _listMinPosOpponent.Count - 1 + 1, 0)
             { FormatBgColor = FormatBgColorType.ColorGreenRed });
-            ListStats.Add(new StatReportPlayer(true, "ROI Court", "ROI any Sets on Court vs ROI Any sets All", "", true, _priceStats.MatchMarketOnCourt.getROI()
-                , _priceStats.MatchMarketOnCourt.NbMarkets, _priceStats.MatchMarket.getROI()/100.0, _indexPos + 3 + _listMinPosOpponent.Count - 1 + 2, 0, 6, 12)
+            ListStats.Add(new StatReportPlayer(true, "ROI Court", "ROI any Sets on Court vs ROI Any sets All", "", true, _priceStats.AnySetMarketOnCourt.getROI()
+                , _priceStats.AnySetMarketOnCourt.NbMarkets, _priceStats.MatchMarket.getROI()/100.0, _indexPos + 3 + _listMinPosOpponent.Count - 1 + 2, 0, 6, 12)
             { FormatBgColor = FormatBgColorType.ColorGreenRed });
         }
         /// <summary>
@@ -186,7 +188,7 @@ namespace OnCourtData
         /// <param name="aIsBestOf5"></param>
         /// <param name="aListMatchFull"></param>
         /// <param name="PeriodValues"></param>
-        public void CalculateValuesForRow2OfMatchReport(List<int> aListCourtsId, int aMinPosOpp, int aMaxPosOpp
+        public void CalculateValuesForRow2OfMatchReport(bool aIsAtp, List<int> aListCourtsId, int aMinPosOpp, int aMaxPosOpp
             , double aMinOdds, double aMaxOdds, bool aIsBestOf5
             , List<MatchDetailsWithOdds> aListMatchFull, int[] PeriodValues)
         {
@@ -237,7 +239,7 @@ namespace OnCourtData
             { FormatBgColor = FormatBgColorType.ColorGreenRed });
             
             //ROI on court
-            StatsOnListMatchesForPlayer _priceStatsOnCourt = new StatsOnListMatchesForPlayer(_listMatchesOnCourt
+            StatsOnListMatchesForPlayer _priceStatsOnCourt = new StatsOnListMatchesForPlayer(aIsAtp, _listMatchesOnCourt
                 , PlayerId, aListCourtsId
                 , null, null, null, null);
             ListStatsFull.Add(new StatReportPlayer(true, "ROI Court", "ROI any sets on Court vs ROI any sets All", ""
@@ -246,7 +248,8 @@ namespace OnCourtData
             { FormatBgColor = FormatBgColorType.ColorGreenRed });
 
             //ROI in period
-            StatsOnListMatchesForPlayer _priceStatsInPeriod = new StatsOnListMatchesForPlayer(_listMatchesInPeriod
+            StatsOnListMatchesForPlayer _priceStatsInPeriod = new StatsOnListMatchesForPlayer
+                (aIsAtp, _listMatchesInPeriod
                 , PlayerId, aListCourtsId
                 , null, null, null, null);
             ListStatsFull.Add(new StatReportPlayer(true, "ROI in Period", "ROI in Period", "", true
@@ -316,7 +319,8 @@ namespace OnCourtData
             //ROI at odds
             List<MatchDetailsWithOdds> _listMatchesAtOdds =
                 aListMatchFull.Where(m => m.isFilterOdds(Convert.ToDecimal(aMinOdds), Convert.ToDecimal(aMaxOdds), PlayerId)).ToList();
-            StatsOnListMatchesForPlayer _priceStatsAtOdds = new StatsOnListMatchesForPlayer(_listMatchesAtOdds, PlayerId, null
+            StatsOnListMatchesForPlayer _priceStatsAtOdds 
+                = new StatsOnListMatchesForPlayer(aIsAtp, _listMatchesAtOdds, PlayerId, null
                 , null, null, null, null, true);
             int _nbWinAtOdds = _listMatchesAtOdds.Where(m => m.isCountAsWinForStats(PlayerId)).Count();
             int _pctWin = 0;
@@ -371,7 +375,7 @@ namespace OnCourtData
             { FormatBgColor = FormatBgColorType.ColorGreenRed });
             
             _lastIndexDisplay = _lastIndexDisplay + 7;
-            StatsOnListMatchesForPlayer _priceStats = new StatsOnListMatchesForPlayer(aListMatchFull, PlayerId
+            StatsOnListMatchesForPlayer _priceStats = new StatsOnListMatchesForPlayer(aIsAtp, aListMatchFull, PlayerId
                 , aListCourtsId, ListCategoriesOpp, null, null, null, true);
             //CATEG
             for (int i = 1; i <= Categorie.fListCategories.Count; i++)

@@ -9,18 +9,159 @@ using System.Diagnostics;
 
 namespace OnCourtData
 {
+    [Serializable]
     [Table(Name = "Games_atp")]
     public class Match
     {
+        public static (double, double, double)[] regressionValuesByCourtATP =
+            //All=0,NonClay=1,Clay=2
+            new (double, double,double)[] { (0,0,0), (1F, 0.96F, -7.7), (1.01F, 1.1F, -5.56F) };//, (1.1F, 1F, -7.56F), (1.1F, 1F, -7.56F) };
+        /// <summary>
+        /// If avg ace pplayer <= 0.05
+        /// </summary>
+        public static (double, double, double)[] regressionValuesByCourtATP2 =
+           //All=0,NonClay=1,Clay=2
+           new (double, double, double)[] { (0, 0, 0), (1.01F, 0.56F,-4.48), (0.91F, 0.76F, -3.17) };//, (1.1F, 1F, -7.56F), (1.1F, 1F, -7.56F) };
+                                                                                                                                                              //new(double, double, double)[] { (0.974F, 0.864F, -5.76F), (0.974F, 0.864F, -5.76F - 1.490693), (0.974F, 0.864F, -5.76F + 1.490693) };//, (1.1F, 1F, -7.56F), (1.1F, 1F, -7.56F) };
+        public static (double, double, double)[] regressionValuesByCourtWTA =
+            new (double, double, double)[] { (0, 0, 0), (0.95F, 0.71F, -2.4F), (0.97F, 0.55F, -1.33F) };//, (1.1F, 1F, -7.56F), (1.1F, 1F, -7.56F) };
+        public static (double, double, double)[] regressionValuesByCourtWTA2 =
+            new (double, double, double)[] { (0, 0, 0), (0.95F, 0.71F, -2.4F), (0.97F, 0.55F, -1.33F) };//, (1.1F, 1F, -7.56F), (1.1F, 1F, -7.56F) };
+        //new (double, double, double)[] { (0.934F, 0.793F, -2.361F), (0.934F, 0.793F, -2.361F - 0.473611), (0.934F, 0.793F, -2.361F + 0.473611) };//, (0.97F, 0.86F, -2.75F), (0.97F, 0.86F, -2.75F) };
+        /*public static List<MatchDetailsWithOdds> filterListMatchesBySpeed(List<MatchDetailsWithOdds> listMatches
+            , List<AceReportTrn> aceReportTrns, int idCourtTrn, double indexSpeedMin, double indexSpeedMax)
+        {
+            if (aceReportTrns != null && listMatches != null)
+            {
+                List<long> _listTrnIds
+                    = aceReportTrns.Where(t => t.CourtId==2 && t.isSurfaceSpeed(idCourtTrn, 0.85))
+                    .Select(m => m.TrnId).ToList();
+                listMatches = listMatches.Where
+                    (m => _listTrnIds.Contains(m.TournamentId)
+                    ).ToList();
+            }
+            return listMatches;
+        }*/
+        /// <summary>
+        /// Calculate 3 stats for the player base on the current season (or more using nbYearsForStats).
+        /// The surface used for the stats is the surface of the Match object
+        /// 1) averageAceRate: percentage of ace by point made
+        /// 2) averageAceRateVs: percentage of ace by point conceded
+        /// 3) nbMatches found to calculate these stats
+        /// </summary>
+        /// <param name="idPlayer"></param>
+        /// <param name="nbYearsForStats">1=N 2=N,N-1 3=N,N-1,N-2</param>
+        /// <returns></returns>
+        public static (double averageAceRate, double averageAceRateVs, int nbMatches)
+             getYearlyStatsAcesAverageForPlayer(bool isATP, long idPlayer, int yearEnd
+                , int nbYearsForStats, int? idCourtForStatsOf6)
+        {
+            //readServeAndReturnStats();
+            //Only 2 courts are distinguished: NonClay(1,3,4,5,6) or Clay(2)
+            List<int> listIndexCourt = Court
+                .getCourtindexForStatsWithNonClayAndClayOnly(idCourtForStatsOf6);
+            //use avg ace stats of player for year and year-1
+            List<int> listYears = new List<int> { yearEnd };
+            for (int i = 2; i <= nbYearsForStats; i++)
+            {
+                listYears.Add(yearEnd - i+1);
+            }
+            List<AceReportPlayer> yearlyReportsPlayer =
+                AcesReportingPlayer.getAllYearlyAceReports(idPlayer
+                , listYears, isATP);
+            //calc avg ace stats for both players
+            return AcesReportingPlayer.getAvgAceRateForPlayer(yearlyReportsPlayer, listIndexCourt, yearEnd);
+        }
+        public static (double averageAceRate, double averageAceRateVs, int nbMatches)
+            getYearlyStatsAcesAverageForPlayerHybrid(bool isATP, long idPlayer, int yearEnd
+            , int nbYearsForStats, double PartNonClay=0.65, double PartClay=0.35)
+        {
+            (double averageAceRateC, double averageAceRateVsC, int nbMatchesC) = 
+            Match.getYearlyStatsAcesAverageForPlayer(isATP, idPlayer, yearEnd, nbYearsForStats, 2);
+            (double averageAceRateH, double averageAceRateVsH, int nbMatchesH) =
+            Match.getYearlyStatsAcesAverageForPlayer(isATP, idPlayer, yearEnd, nbYearsForStats, 1);
+            return (PartClay * averageAceRateC + PartNonClay * averageAceRateH
+                , PartClay * averageAceRateVsC + PartNonClay * averageAceRateVsH
+                , Math.Min(nbMatchesC, nbMatchesH));
+        }
+        /// <summary>
+        /// Predict the number of aces for the match:
+        /// yearlyExpectedAceRate * X + yearlyExpectedAceRateOpp * Y + Speed + RO
+        /// X Y and R0 are the regression values for the court
+        /// </summary>
+        /// <param name="indexPlayer">O or 1</param>
+        /// <param name="yearlyAvgAceRate"></param>
+        /// <param name="yearlyAvgAceRateOpp"></param>
+        /// <param name="speed2Court">Set 1 if default</param>
+        /// <param name="aIdCourtOf3">0 All, 1 NonClay, 2 Clay</param>
+        /// <returns></returns>
+        public static double getPredictedAcesRatePlayerWithSpeed
+            (double yearlyAvgAceRate, double yearlyAvgAceRateOpp, double speed2Court, int aIdCourtOf3, bool isATP)
+        {
+            if (yearlyAvgAceRate < 0 || yearlyAvgAceRateOpp < 0)
+                return -1;
+            (double coeffServerRegression, double coeffReturnerRegression, double R0) 
+                regressionValues = regressionValuesByCourtATP[aIdCourtOf3];
+            if (yearlyAvgAceRate <= 5)
+                regressionValues = regressionValuesByCourtATP2[aIdCourtOf3];
+            if (!isATP)
+            {
+                regressionValues = regressionValuesByCourtWTA[aIdCourtOf3];
+                if (yearlyAvgAceRate <= 5)
+                    regressionValues = regressionValuesByCourtWTA2[aIdCourtOf3];
+            }
+            return ((yearlyAvgAceRate * regressionValues.coeffServerRegression)
+                    + (yearlyAvgAceRateOpp) * regressionValues.coeffReturnerRegression
+                   + regressionValues.R0)*speed2Court;
+            
+        }
+        public static double getPredictedAcesRatePlayer
+            (double yearlyAvgAceRate, double yearlyAvgAceRateOpp, int aIdCourtOf3, bool isATP)
+        {
+            return getPredictedAcesRatePlayerWithSpeed(yearlyAvgAceRate, yearlyAvgAceRateOpp, 1, aIdCourtOf3, isATP);
+
+        }
+        public static string csvHeader = "Date,TrnId,Trn,TrnRk,TrnSite,"
+            + "CourtId,RoundId,Round,P1Id,P1,P2Id,P2,"
+            + "Result,IndexP,Player,AceRatePlayer,SrvPtsWonPlayer,FirstSrvPtsWonP1";
+        public string ToCsvLine(bool isPlayer1)
+        {
+            int indexPlayer = 0;
+            string nameP = this.Player1Name.Replace(",", ";");
+            if (!isPlayer1)
+            {
+                indexPlayer = 1;
+                nameP = this.Player2Name.Replace(",", ";");
+            }
+            return $"{this.Date},{this.TournamentId},{this.TournamentName.Replace(",", ";")},{this.TournamentRank},{this.TournamentSite}"
+                + $",{this.CourtName},{this.RoundId},{this.RoundName},{this.Id1},{this.Player1Name.Replace(",", ";")},{this.Id2},{this.Player2Name.Replace(",", ";")}"
+                + $",{this.ResultString},{indexPlayer},{nameP},"
+                + $"{this.StatsByPlayers[indexPlayer].getPctAceByPointsOnServe()}"
+                + $",{this.StatsByPlayers[indexPlayer].getServePctWon()},{this.StatsByPlayers[indexPlayer].getFirstServePctWon()}"
+                ;
+        }
+
         [System.ComponentModel.Browsable(false)]
         protected bool IsATP { get; set; }
         [System.ComponentModel.Browsable(false)]
         public ResultForMatch ProcessedResult { get; set; }
         [System.ComponentModel.Browsable(false)]
         //stats for P1 and P2
-        public List<StatsForOneMatch> ListProcessedStats { get; set; }
+        public List<StatsPlayerForOneMatch> StatsByPlayers { get; set; }
 
-
+        /// <summary>
+        /// Returns 0 if not found
+        /// </summary>
+        /// <param name="idTrn"></param>
+        /// <param name="isATP"></param>
+        /// <returns></returns>
+        public double getTrnSpeed(bool isATP)
+        {
+            AceReportTrn trnAce = AceReportTrn.getTrnSpeed(this.TournamentId, isATP);
+            if (trnAce != null)
+                return Math.Round(trnAce.SpeedAmongCourtCateg, 2);
+            else return 0;
+        }
         public override string ToString()
         {
             string s = (Player1Name + " v " + Player2Name);
@@ -32,13 +173,13 @@ namespace OnCourtData
         public Match()
         {
             ProcessedResult = null;
-            ListProcessedStats = null;
+            StatsByPlayers = null;
         }
         public Match(bool aIsATP)
         {
             IsATP = aIsATP;
             ProcessedResult = null;
-            ListProcessedStats = null;
+            StatsByPlayers = null;
         }
 
         [System.ComponentModel.Browsable(false)]
@@ -105,52 +246,56 @@ namespace OnCourtData
         public int CourtId { get; set; }
         public void readResult()
         {
-            ProcessedResult = new ResultForMatch();
-            ProcessedResult.readResult(ResultString);
+            if (ProcessedResult == null)
+            {
+                ProcessedResult = new ResultForMatch();
+                ProcessedResult.readResult(ResultString);
+            }
         }
         /// <summary>
         /// Only called when loading up Stats from Db
         /// </summary>
-        public void createStatsObjectForPlayers()
+        public void createStatsObjectForPlayers(List<StatsPlayerForOneMatch> aStatsByPlayers)
         {
             //if (ProcessedResult == null)
             //    readResult();
-            ListProcessedStats = new List<StatsForOneMatch>();
-            ListProcessedStats.Add(new StatsForOneMatch(1));
-            ListProcessedStats.Add(new StatsForOneMatch(2));
+            StatsByPlayers = aStatsByPlayers;
         }
         ///// <summary>
         /// Require to have loaded Stats from Db before
         /// Only count Completed Matches with Stats available for BP's
         /// </summary>
-        public void readHolds()
+        public void readServeAndReturnStats()
         {
-            if (ProcessedResult == null)
-                readResult();
-            if (ListProcessedStats != null && ListProcessedStats[0].BP_1 != -1 && ListProcessedStats[1].BP_1 != -1 
+            readResult();
+            if (StatsByPlayers != null && StatsByPlayers[0].BP_1 != -1 && StatsByPlayers[1].BP_1 != -1 
                 && ProcessedResult.EndType == ResultForMatch.TypeEnd.Completed)
             {
                 int _nbTbWonByP1 = ProcessedResult.fListTbWinners.Where(s => s == 1).Count();
                 int _nbTbWonByP2 = ProcessedResult.fListTbWinners.Where(s => s == 2).Count();
                 int _nbGamesWonByP1ExclTb = ProcessedResult.fNbGamesWonP1 - _nbTbWonByP1;
                 int _nbGamesWonByP2ExclTb = ProcessedResult.fNbGamesWonP2 - _nbTbWonByP2;
-                int _nbBreaksForP1 = ListProcessedStats[0].BP_1;
-                int _nbBreaksForP2 = ListProcessedStats[1].BP_1;
+                int _nbBreaksForP1 = StatsByPlayers[0].BP_1;
+                int _nbBreaksForP2 = StatsByPlayers[1].BP_1;
                 int _nbServiceGamesWonP1 = _nbGamesWonByP1ExclTb - _nbBreaksForP1;
                 int _nbServiceGamesWonP2 = _nbGamesWonByP2ExclTb - _nbBreaksForP2;
-                ListProcessedStats[0].nbServiceGamesPlayed = _nbBreaksForP2 + _nbServiceGamesWonP1;
-                ListProcessedStats[1].nbServiceGamesPlayed = _nbBreaksForP1 + _nbServiceGamesWonP2;
-                ListProcessedStats[0].nbServiceGamesWon = _nbServiceGamesWonP1;
-                ListProcessedStats[1].nbServiceGamesWon = _nbServiceGamesWonP2;
-                ListProcessedStats[0].nbReturnGamesPlayed = ListProcessedStats[1].nbServiceGamesPlayed;
-                ListProcessedStats[1].nbReturnGamesPlayed = ListProcessedStats[0].nbServiceGamesPlayed;
-
+                StatsByPlayers[0].courtIndex = this.CourtId;
+                StatsByPlayers[1].courtIndex = this.CourtId;
+                StatsByPlayers[0].nbServiceGamesPlayed = _nbBreaksForP2 + _nbServiceGamesWonP1;
+                StatsByPlayers[1].nbServiceGamesPlayed = _nbBreaksForP1 + _nbServiceGamesWonP2;
+                StatsByPlayers[0].nbServiceGamesWon = _nbServiceGamesWonP1;
+                StatsByPlayers[1].nbServiceGamesWon = _nbServiceGamesWonP2;
+                StatsByPlayers[0].nbReturnGamesPlayed = StatsByPlayers[1].nbServiceGamesPlayed;
+                StatsByPlayers[1].nbReturnGamesPlayed = StatsByPlayers[0].nbServiceGamesPlayed;
+                
                 int _nbGamesInLastSetP1 = this.ProcessedResult.fListSetResultsForP1[this.ProcessedResult.fNbSetsWonP1
                     + this.ProcessedResult.fNbSetsWonP2-1];
                 int _nbGamesInLastSetP2 = this.ProcessedResult.fListSetResultsForP2[this.ProcessedResult.fNbSetsWonP1
                     + this.ProcessedResult.fNbSetsWonP2 - 1];
                 bool _isTbPlayedLastSet = (_nbGamesInLastSetP1 + _nbGamesInLastSetP2 == 13);
                 int _nbTbBeforeLastSet = _nbTbWonByP1 + _nbTbWonByP2;
+                StatsByPlayers[0].nbTBPlayed = _nbTbBeforeLastSet;
+                StatsByPlayers[1].nbTBPlayed = _nbTbBeforeLastSet;
                 if (_isTbPlayedLastSet)
                     _nbTbBeforeLastSet--;
                 //int _nbGamesBeforeLastSet = ProcessedResult.fNbGamesWonP1 + ProcessedResult.fNbGamesWonP2
@@ -158,16 +303,16 @@ namespace OnCourtData
                 this.IsP1ServingFirst = null;
                 if ((_nbTbBeforeLastSet % 2) == 0)
                 {
-                    if (ListProcessedStats[0].nbServiceGamesPlayed > ListProcessedStats[1].nbServiceGamesPlayed)
+                    if (StatsByPlayers[0].nbServiceGamesPlayed > StatsByPlayers[1].nbServiceGamesPlayed)
                         this.IsP1ServingFirst = true;
-                    if (ListProcessedStats[0].nbServiceGamesPlayed < ListProcessedStats[1].nbServiceGamesPlayed)
+                    if (StatsByPlayers[0].nbServiceGamesPlayed < StatsByPlayers[1].nbServiceGamesPlayed)
                         this.IsP1ServingFirst = false;
                 }
                 else
                 {
-                    if (ListProcessedStats[0].nbServiceGamesPlayed > ListProcessedStats[1].nbServiceGamesPlayed)
+                    if (StatsByPlayers[0].nbServiceGamesPlayed > StatsByPlayers[1].nbServiceGamesPlayed)
                         this.IsP1ServingFirst = false;
-                    if (ListProcessedStats[0].nbServiceGamesPlayed < ListProcessedStats[1].nbServiceGamesPlayed)
+                    if (StatsByPlayers[0].nbServiceGamesPlayed < StatsByPlayers[1].nbServiceGamesPlayed)
                         this.IsP1ServingFirst = true;
                 }
             }

@@ -49,14 +49,17 @@ namespace OnCourtData
                 return PercentServiceGamesWon + PercentReturnGamesWon;
             }
         }
-        public ServiceAndReturnStatsForListMatchesOfPlayer(List<Match> aListMatches, DateTime aStartingDate, List<int> aSurfacesId
+        public ServiceAndReturnStatsForListMatchesOfPlayer(List<Match> aListMatches, DateTime aStartingDate
+            , List<int> aSurfacesId
             , long aIdPlayer, List<int> aListTrnmtLevels, bool aIsIncludeQualies = false)
         {
             foreach (MatchDetailsWithOdds m in aListMatches)
+            {
                 if (m.ProcessedResult == null)
                 {
                     m.readResult();
                 }
+            }
             ListMatches = aListMatches;
             StartingDate = aStartingDate;
             if (aSurfacesId != null)
@@ -69,10 +72,10 @@ namespace OnCourtData
             if (!aIsIncludeQualies)
                 _idRoundMin = 4;
             Level = string.Join("-", aListTrnmtLevels.ToArray());
-            List<Match> _list1 = ListMatches.Where(m => m.Id1 == IdPlayer && m.ListProcessedStats != null 
-            && m.ListProcessedStats[0].nbServiceGamesWon != -1 && m.RoundId >= _idRoundMin).ToList();
-            List<Match> _list2 = ListMatches.Where(m => m.Id2 == IdPlayer && m.ListProcessedStats != null 
-            && m.ListProcessedStats[1].nbServiceGamesWon != -1 && m.RoundId >= _idRoundMin).ToList();
+            List<Match> _list1 = ListMatches.Where(m => m.Id1 == IdPlayer && m.StatsByPlayers != null 
+            && m.StatsByPlayers[0].nbServiceGamesWon != -1 && m.RoundId >= _idRoundMin).ToList();
+            List<Match> _list2 = ListMatches.Where(m => m.Id2 == IdPlayer && m.StatsByPlayers != null 
+            && m.StatsByPlayers[1].nbServiceGamesWon != -1 && m.RoundId >= _idRoundMin).ToList();
             if (aSurfacesId != null)
             {
                 _list1 = _list1.Where(m => aSurfacesId.Contains(m.CourtId)).ToList();
@@ -84,16 +87,16 @@ namespace OnCourtData
                 _list2 = _list2.Where(m => aListTrnmtLevels.Contains(m.TournamentRank)).ToList();
             }
             NbMatchesCounted = _list1.Count + _list2.Count;
-            ServiceGamesWon = _list1.Sum(m => m.ListProcessedStats[0].nbServiceGamesWon) + _list2.Sum(m => m.ListProcessedStats[1].nbServiceGamesWon);
-            ServiceGamesPlayed = _list1.Sum(m => m.ListProcessedStats[0].nbServiceGamesPlayed) + _list2.Sum(m => m.ListProcessedStats[1].nbServiceGamesPlayed);
-            ReturnGamesWon = _list1.Sum(m => m.ListProcessedStats[0].BP_1) + _list2.Sum(m => m.ListProcessedStats[1].BP_1);
-            ReturnGamesPlayed = _list1.Sum(m => m.ListProcessedStats[0].nbReturnGamesPlayed) + _list2.Sum(m => m.ListProcessedStats[1].nbReturnGamesPlayed);
-            FirstServicePointsPlayed = _list1.Sum(m => m.ListProcessedStats[0].W1SOF_1) + _list2.Sum(m => m.ListProcessedStats[1].W1SOF_1);
-            FirstServicePointsWon = _list1.Sum(m => m.ListProcessedStats[0].W1S_1) + _list2.Sum(m => m.ListProcessedStats[1].W1S_1);
-            ServicePointsPlayed = _list1.Sum(m => m.ListProcessedStats[0].W1SOF_1+ m.ListProcessedStats[0].W2SOF_1) 
-                + _list2.Sum(m => m.ListProcessedStats[1].W1SOF_1+ m.ListProcessedStats[1].W2SOF_1);
-            ServicePointsPlayed = _list1.Sum(m => m.ListProcessedStats[0].W1S_1 + m.ListProcessedStats[0].W2S_1)
-                + _list2.Sum(m => m.ListProcessedStats[1].W1S_1 + m.ListProcessedStats[1].W2S_1);
+            ServiceGamesWon = _list1.Sum(m => m.StatsByPlayers[0].nbServiceGamesWon) + _list2.Sum(m => m.StatsByPlayers[1].nbServiceGamesWon);
+            ServiceGamesPlayed = _list1.Sum(m => m.StatsByPlayers[0].nbServiceGamesPlayed) + _list2.Sum(m => m.StatsByPlayers[1].nbServiceGamesPlayed);
+            ReturnGamesWon = _list1.Sum(m => m.StatsByPlayers[0].BP_1) + _list2.Sum(m => m.StatsByPlayers[1].BP_1);
+            ReturnGamesPlayed = _list1.Sum(m => m.StatsByPlayers[0].nbReturnGamesPlayed) + _list2.Sum(m => m.StatsByPlayers[1].nbReturnGamesPlayed);
+            FirstServicePointsPlayed = _list1.Sum(m => m.StatsByPlayers[0].W1SOF_1) + _list2.Sum(m => m.StatsByPlayers[1].W1SOF_1);
+            FirstServicePointsWon = _list1.Sum(m => m.StatsByPlayers[0].W1S_1) + _list2.Sum(m => m.StatsByPlayers[1].W1S_1);
+            ServicePointsPlayed = _list1.Sum(m => m.StatsByPlayers[0].W1SOF_1+ m.StatsByPlayers[0].W2SOF_1) 
+                + _list2.Sum(m => m.StatsByPlayers[1].W1SOF_1+ m.StatsByPlayers[1].W2SOF_1);
+            ServicePointsPlayed = _list1.Sum(m => m.StatsByPlayers[0].W1S_1 + m.StatsByPlayers[0].W2S_1)
+                + _list2.Sum(m => m.StatsByPlayers[1].W1S_1 + m.StatsByPlayers[1].W2S_1);
         }
     }
 }

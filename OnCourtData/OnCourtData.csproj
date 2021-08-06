@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -10,8 +10,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>OnCourtData</RootNamespace>
     <AssemblyName>OnCourtData</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,9 +31,11 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Linq" />
     <Reference Include="System.Windows.Forms" />
@@ -42,17 +46,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AceReportTrn.cs" />
+    <Compile Include="AceReportPlayer.cs" />
+    <Compile Include="AcesReportingTrn.cs" />
     <Compile Include="Categories.cs" />
     <Compile Include="Common.cs" />
     <Compile Include="Court.cs" />
     <Compile Include="DataContextForMsAcess.cs" />
     <Compile Include="DateSince.cs" />
+    <Compile Include="EloStat.cs" />
+    <Compile Include="ListMatches.cs" />
     <Compile Include="Match.cs" />
     <Compile Include="MatchDetailsWithOdds.cs" />
     <Compile Include="MsAccessGet.cs" />
+    <Compile Include="MyData.cs" />
     <Compile Include="OnCourtDb.cs" />
     <Compile Include="Period.cs" />
     <Compile Include="Player.cs" />
+    <Compile Include="AcesReportingPlayer.cs" />
+    <Compile Include="StatByCourt.cs" />
     <Compile Include="StatsOnListMatchesForPlayer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
@@ -68,7 +80,7 @@
     <Compile Include="Settings.cs" />
     <Compile Include="SqlOnCourt.cs" />
     <Compile Include="StatReportPlayer.cs" />
-    <Compile Include="Stats.cs" />
+    <Compile Include="StatsPlayerForOneMatch.cs" />
     <Compile Include="StatsMatchesForPlayer.cs" />
     <Compile Include="Today.cs" />
     <Compile Include="Tournament.cs" />
@@ -86,6 +98,14 @@
     <ProjectReference Include="..\..\..\..\..\Common\Tools\MyTools\MyTools.csproj">
       <Project>{cae4ad96-4260-4441-beb6-b6ec3cbeacba}</Project>
       <Name>MyTools</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\Common\Tools\Serialization\Serialization\Serialization.csproj">
+      <Project>{00d62315-8d39-4adc-93df-9cbef1e12061}</Project>
+      <Name>Serialization</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\EloRanking\EloRanking\EloRanking.csproj">
+      <Project>{c471e86f-60f7-4f63-b657-97ead3e69f28}</Project>
+      <Name>EloRanking</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

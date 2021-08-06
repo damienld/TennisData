@@ -109,6 +109,18 @@ namespace OnCourtData
             , new DateSince((DateTime.Now.Year-4)+"", new DateTime(DateTime.Now.Year-5, 12, 25))
             , new DateSince((DateTime.Now.Year-5)+"", new DateTime(DateTime.Now.Year-6, 12, 25))
             };
+        public static List<DateSince> ListDates_FAces = new List<DateSince>()
+        {   new DateSince(DateTime.Now.Year+"", new DateTime(DateTime.Now.Year-1, 12, 25))
+            , new DateSince((DateTime.Now.Year-1)+"", new DateTime(DateTime.Now.Year-2, 12, 25))
+            , new DateSince((DateTime.Now.Year-2)+"", new DateTime(DateTime.Now.Year-3, 12, 25))
+            , new DateSince((DateTime.Now.Year-3)+"", new DateTime(DateTime.Now.Year-4, 12, 25))
+            , new DateSince((DateTime.Now.Year-4)+"", new DateTime(DateTime.Now.Year-5, 12, 25))
+            , new DateSince((DateTime.Now.Year-5)+"", new DateTime(DateTime.Now.Year-6, 12, 25))
+            , new DateSince((DateTime.Now.Year-6)+"", new DateTime(DateTime.Now.Year-7, 12, 25))
+            , new DateSince((DateTime.Now.Year-7)+"", new DateTime(DateTime.Now.Year-8, 12, 25))
+            , new DateSince((DateTime.Now.Year-8)+"", new DateTime(DateTime.Now.Year-9, 12, 25))
+            , new DateSince((DateTime.Now.Year-9)+"", new DateTime(DateTime.Now.Year-10, 12, 25))
+            };
 
     };
 }

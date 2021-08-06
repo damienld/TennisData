@@ -7,17 +7,153 @@ using System.Data.OleDb;
 using System.Data;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace OnCourtData
 {
     public class SqlOnCourt
     {
+        public static string connectionString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=..\\OnCourt.mdb;User ID=;Jet OLEDB:Database Password=qKbE8lWacmYQsZ2;Persist Security Info=true;";
+        public static string connectionStringMyRankings = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=..\\MyRankings.mdb;User ID=;Persist Security Info=true;";
+        public static string connectionStringMyNotes = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=..\\MyNotes.mdb;User ID=;Persist Security Info=true;";
+        public static string connectionStringMyTrn = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=..\\MyTrn.mdb;User ID=;Persist Security Info=true;";
+
+        public static PlayersCollection getListPlayersSqlEndOfYear(string aConnectionString, bool aIsAtp
+            , int aYear, int aRankMax)
+        {
+            string _strQuery = "select pos_r as Rank, id_p as ID, name_p as Nom from ratings_atp "
+                + " left join Players_atp ON ratings_atp.id_p_r=Players_atp.id_p where ratings_atp.date_r <= #12/16/" + aYear + "# "
+                + " and ratings_atp.date_r > #12/09/" + aYear + "# and pos_r<="+ aRankMax + " order by pos_r";
+            if (!aIsAtp)
+                _strQuery = _strQuery.Replace("_atp", "_wta");
+            DbDataReader rdr = null;
+            DbConnection myConnection;
+            string _stringConnection = aConnectionString;
+            myConnection = new OleDbConnection(_stringConnection);
+
+            try
+            {
+                OleDbCommand myCommand = new OleDbCommand(_strQuery, (OleDbConnection)myConnection);
+                myCommand.CommandType = CommandType.Text;
+                myConnection.Open();
+                rdr = myCommand.ExecuteReader();
+                PlayersCollection _collectionPlayers = new PlayersCollection();
+                //_tabOdds.Add(new int[4]);
+                while (rdr.Read())
+                {
+                    Player _player = new Player
+                    {
+                        Name = Convert.ToString(rdr["Nom"]),
+                        Id = Convert.ToInt32(rdr["ID"])
+                    };
+                    int colIndex = rdr.GetOrdinal("Rank");
+                    _player.Rank = -1;
+                    if (!rdr.IsDBNull(colIndex))
+                        _player.Rank = Convert.ToInt32(rdr["Rank"]);
+                    _player.ListCategoriesId = new List<int>();
+                    _collectionPlayers.Add(_player);
+                }
+                return _collectionPlayers;
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Impossible to connect to the database, please contact the support (Error: " + e.Message + " )");
+                return new PlayersCollection();
+            }
+            finally
+            {
+                if (rdr != null)
+                {
+                    rdr.Close();
+                }
+                if (myConnection != null)
+                {
+                    myConnection.Close();
+                }
+
+            }
+        }
+
+        public static PlayersCollection getListPlayersSql(string aFilter, string aConnectionString
+            , int aNbTopPlayersToLoadUp, bool aIsAtp)
+        {
+            string _strClauseSelect_Categories = " , categoriesP1.CAT1 as P1C1, categoriesP1.CAT2 as P1C2, categoriesP1.CAT3 as P1C3, categoriesP1.CAT4 as P1C4, categoriesP1.CAT5 as P1C5, " +
+                "  categoriesP1.CAT6 as P1C6, categoriesP1.CAT7 as P1C7, categoriesP1.CAT8 as P1C8, categoriesP1.CAT9 as P1C9 ";
+            string _strClauseJoin_Categories = " LEFT OUTER JOIN categories_atp as categoriesP1 " +
+        " ON categoriesP1.id_p = players.ID_P  ";
+
+            string _strQuery = "SELECT " + (aNbTopPlayersToLoadUp > -1 ? " TOP " + aNbTopPlayersToLoadUp : "") +
+                              " players.NAME_P AS Nom, players.ID_P as ID, Players.rank_p as Rank" +
+                              _strClauseSelect_Categories +
+                            "FROM Players_atp as players " +
+                            _strClauseJoin_Categories +
+                            "WHERE  " +
+                            (aFilter != "" ? "NAME_P LIKE '%" + aFilter + "%' AND " : "") +
+                            " not( NAME_P LIKE '%/%') " +
+                            "ORDER BY  iif(Players.rank_p is not null,Players.rank_p,1000) ";
+            if (!aIsAtp)
+                _strQuery = _strQuery.Replace("_atp", "_wta");
+            DbDataReader rdr = null;
+            DbConnection myConnection;
+            string _stringConnection = aConnectionString;
+            myConnection = new OleDbConnection(_stringConnection);
+
+            try
+            {
+                OleDbCommand myCommand = new OleDbCommand(_strQuery, (OleDbConnection)myConnection);
+                myCommand.CommandType = CommandType.Text;
+                myConnection.Open();
+                rdr = myCommand.ExecuteReader();
+                PlayersCollection _collectionPlayers = new PlayersCollection();
+                //_tabOdds.Add(new int[4]);
+                while (rdr.Read())
+                {
+                    Player _player = new Player
+                    {
+                        Name = Convert.ToString(rdr["Nom"]),
+                        Id = Convert.ToInt32(rdr["ID"])
+                    };
+                    int colIndex = rdr.GetOrdinal("Rank");
+                    _player.Rank = -1;
+                    if (!rdr.IsDBNull(colIndex))
+                        _player.Rank = Convert.ToInt32(rdr["Rank"]);
+                    _player.ListCategoriesId = new List<int>();
+                    for (int i = 1; i <= 9; i++)
+                    {
+                        string _nameField = "P1C" + i;
+                        if (Convert.ToBoolean(rdr[_nameField]))
+                            _player.ListCategoriesId.Add(i);
+                    }
+                    _collectionPlayers.Add(_player);
+                }
+                return _collectionPlayers;
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Impossible to connect to the database, please contact the support (Error: " + e.Message + " )");
+                return null;
+            }
+            finally
+            {
+                if (rdr != null)
+                {
+                    rdr.Close();
+                }
+                if (myConnection != null)
+                {
+                    myConnection.Close();
+                }
+
+            }
+        }
+
         public static int getRankPlayer_Sql(long aIdPlayer, string aConnectionString, bool aIsAtp, DateTime aMaxDate)
         {
             DateTime _dateStartSearch = aMaxDate.AddDays(-30);
             string _strQuery = "select TOP 1 pos_r from ratings_atp where ratings_atp.date_r <= #" 
                 + aMaxDate.Month +"/"+ aMaxDate.Day+"/" +aMaxDate.Year + "# and ratings_atp.date_r >= #" 
-                + _dateStartSearch.Month + "/" + _dateStartSearch.Day + "/" + _dateStartSearch.Year + "# and id_p_r = "+ aIdPlayer+" order by date_r desc";
+                + _dateStartSearch.Month + "/" + _dateStartSearch.Day + "/" + _dateStartSearch.Year + "# and id_p_r = "
+                + aIdPlayer+" order by date_r desc";
             if (!aIsAtp)
                 _strQuery = _strQuery.Replace("_atp", "_wta");
             DbDataReader rdr = null;
@@ -69,7 +205,7 @@ namespace OnCourtData
         /// <param name="aConnectionString"></param>
         /// <param name="aIsAtp"></param>
         /// <returns></returns>
-        public static List<StatsForOneMatch> getStatsForMatchSql(long aIdPlayer1, long aIdPlayer2, long aIdTrn
+        public static List<StatsPlayerForOneMatch> getStatsForMatchSql(long aIdPlayer1, long aIdPlayer2, long aIdTrn
             , long aIdRound, string aConnectionString, bool aIsAtp)
         {
             string _strQuery = "SELECT * FROM Stat_atp " +
@@ -84,9 +220,9 @@ namespace OnCourtData
 
             try
             {
-                List<StatsForOneMatch> _ListProcessedStats = new List<StatsForOneMatch>();
-                _ListProcessedStats.Add(new StatsForOneMatch(1));
-                _ListProcessedStats.Add(new StatsForOneMatch(2));
+                List<StatsPlayerForOneMatch> _ListProcessedStats = new List<StatsPlayerForOneMatch>();
+                _ListProcessedStats.Add(new StatsPlayerForOneMatch(1));
+                _ListProcessedStats.Add(new StatsPlayerForOneMatch(2));
 
                 OleDbCommand myCommand = new OleDbCommand(_strQuery, (OleDbConnection)myConnection);
                 myCommand.CommandType = CommandType.Text;
@@ -95,7 +231,7 @@ namespace OnCourtData
 
                 while (rdr.Read())
                 {
-                    foreach (StatsForOneMatch _statsForOnePlayer in _ListProcessedStats)
+                    foreach (StatsPlayerForOneMatch _statsForOnePlayer in _ListProcessedStats)
                     {
                         if (rdr["MT"].ToString() != "")
                             _statsForOnePlayer.MT = Convert.ToDateTime(rdr["MT"]).ToString("HH:mm:ss");
@@ -146,9 +282,9 @@ namespace OnCourtData
             catch (Exception e)
             {
                 MessageBox.Show("Impossible to connect to the database, please contact the support (Error: " + e.Message + " )");
-                List<StatsForOneMatch> _ListProcessedStats = new List<StatsForOneMatch>();
-                _ListProcessedStats.Add(new StatsForOneMatch(1));
-                _ListProcessedStats.Add(new StatsForOneMatch(2));
+                List<StatsPlayerForOneMatch> _ListProcessedStats = new List<StatsPlayerForOneMatch>();
+                _ListProcessedStats.Add(new StatsPlayerForOneMatch(1));
+                _ListProcessedStats.Add(new StatsPlayerForOneMatch(2));
                 return _ListProcessedStats;
             }
             finally
@@ -241,6 +377,7 @@ namespace OnCourtData
  (aStartingDate.HasValue ? " AND games.DATE_G > #"+aStartingDate.Value.ToString("MM/dd/yyyy").Replace('.','/')+"# ": "") 
  + (aEndingDate.HasValue ? " AND games.DATE_G < #" + aEndingDate.Value.ToString("MM/dd/yyyy").Replace('.', '/') + "# " : "")
  + (aIdTrn != null ? " AND trnmt.ID_t IN (" + _listTrn +") " :"")
+ + " AND (not(player1.NAME_P LIKE '%/%')) "
  + _sqlPinnyOnly +
 " GROUP BY player1.NAME_P , Player2.NAME_P, trnmt.name_t, trnmt.ID_t, games.DATE_G , rounds.name_r, rounds.ID_r, surfaces.name_c, surfaces.id_c, games.RESULT_G, trnmt.date_t, trnmt.site_t, games.ID1_g , games.ID2_g, trnmt.rank_t " +
 (aIsIncludeStats ? _strClauseSelect_stats : "") + (aIsIncludeSeed ? _strClauseGroupby_Seed : "") + (aIsIncludeCategories ? _strClauseGroupby_Categories : "") +
@@ -343,8 +480,10 @@ namespace OnCourtData
                     }
                     if (aIsIncludeStats)
                     {
-                        _match.createStatsObjectForPlayers();
-                        foreach (StatsForOneMatch _statsForOnePlayer in _match.ListProcessedStats)
+                        List<StatsPlayerForOneMatch> statsByPlayers = new List<StatsPlayerForOneMatch>();
+                        statsByPlayers.Add(new StatsPlayerForOneMatch(1));
+                        statsByPlayers.Add(new StatsPlayerForOneMatch(2));
+                        foreach (StatsPlayerForOneMatch _statsForOnePlayer in statsByPlayers)
                         {
                             if (rdr["MT"].ToString() != "")
                                 _statsForOnePlayer.MT = Convert.ToDateTime(rdr["MT"]).ToString("HH:mm:ss");
@@ -388,9 +527,9 @@ namespace OnCourtData
                                 _statsForOnePlayer.RPW_1 = Convert.ToInt16(rdr["RPW_" + _statsForOnePlayer.IndexStatForMatch]);
                             if (rdr["RPWOF_" + _statsForOnePlayer.IndexStatForMatch].ToString() != "")
                                 _statsForOnePlayer.RPWOF_1 = Convert.ToInt16(rdr["RPWOF_" + _statsForOnePlayer.IndexStatForMatch]);
-
-
                         }
+                        _match.createStatsObjectForPlayers(statsByPlayers);
+
                     }
                     _collectionMatches.Add(_match);
                 }
@@ -414,79 +553,6 @@ namespace OnCourtData
 
             }
 
-        }
-
-        public static PlayersCollection getListPlayersSql(string aFilter, string aConnectionString
-            , int aNbTopPlayersToLoadUp, bool aIsAtp)
-        {
-            string _strClauseSelect_Categories = " , categoriesP1.CAT1 as P1C1, categoriesP1.CAT2 as P1C2, categoriesP1.CAT3 as P1C3, categoriesP1.CAT4 as P1C4, categoriesP1.CAT5 as P1C5, " +
-                "  categoriesP1.CAT6 as P1C6, categoriesP1.CAT7 as P1C7, categoriesP1.CAT8 as P1C8, categoriesP1.CAT9 as P1C9 ";
-            string _strClauseJoin_Categories = " LEFT OUTER JOIN categories_atp as categoriesP1 " +
-        " ON categoriesP1.id_p = players.ID_P  ";
-
-            string _strQuery = "SELECT " + (aNbTopPlayersToLoadUp>-1?" TOP " + aNbTopPlayersToLoadUp:"") +
-                              " players.NAME_P AS Nom, players.ID_P as ID, Players.rank_p as Rank" +
-                              _strClauseSelect_Categories +
-                            "FROM Players_atp as players " +
-                            _strClauseJoin_Categories +
-                            "WHERE  " +
-                            (aFilter!=""? "NAME_P LIKE '%"+ aFilter+"%' AND " : "") +
-                            " not( NAME_P LIKE '%/%') " +
-                            "ORDER BY  iif(Players.rank_p is not null,Players.rank_p,1000) ";
-            if (!aIsAtp)
-                _strQuery=_strQuery.Replace("_atp", "_wta");
-            DbDataReader rdr = null;
-            DbConnection myConnection;
-            string _stringConnection = aConnectionString;
-            myConnection = new OleDbConnection(_stringConnection);
-
-            try
-            {
-                OleDbCommand myCommand = new OleDbCommand(_strQuery, (OleDbConnection)myConnection);
-                myCommand.CommandType = CommandType.Text;
-                myConnection.Open();
-                rdr = myCommand.ExecuteReader();
-                PlayersCollection _collectionPlayers = new PlayersCollection();
-                //_tabOdds.Add(new int[4]);
-                while (rdr.Read())
-                {
-                    Player _player = new Player
-                    {
-                        Name = Convert.ToString(rdr["Nom"]),
-                        Id = Convert.ToInt32(rdr["ID"])
-                    };
-                    int colIndex = rdr.GetOrdinal("Rank");
-                    _player.Rank = -1;
-                    if (!rdr.IsDBNull(colIndex))
-                        _player.Rank = Convert.ToInt32(rdr["Rank"]);
-                    _player.ListCategoriesId = new List<int>();
-                        for (int i = 1; i <= 9; i++)
-                        {
-                            string _nameField = "P1C" + i;
-                            if (Convert.ToBoolean(rdr[_nameField]))
-                                _player.ListCategoriesId.Add(i);
-                        }
-                    _collectionPlayers.Add(_player);
-                }
-                return _collectionPlayers;
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show("Impossible to connect to the database, please contact the support (Error: " + e.Message + " )");
-                return null;
-            }
-            finally
-            {
-                if (rdr != null)
-                {
-                    rdr.Close();
-                }
-                if (myConnection != null)
-                {
-                    myConnection.Close();
-                }
-
-            }
         }
 
         public static Player getPlayersDetailFromIdSql(long aIdPlayer, string aConnectionString, bool aIsAtp)
@@ -734,8 +800,10 @@ namespace OnCourtData
 
                     if (aIsIncludeStats)
                     {
-                        _match.createStatsObjectForPlayers();
-                        foreach (StatsForOneMatch _statsForOnePlayer in _match.ListProcessedStats)
+                        List<StatsPlayerForOneMatch> statsByPlayers = new List<StatsPlayerForOneMatch>();
+                        statsByPlayers.Add(new StatsPlayerForOneMatch(1));
+                        statsByPlayers.Add(new StatsPlayerForOneMatch(2));
+                        foreach (StatsPlayerForOneMatch _statsForOnePlayer in statsByPlayers)
                         {
                             if (rdr["MT"].ToString() != "")
                                 _statsForOnePlayer.MT = Convert.ToDateTime(rdr["MT"]).ToString("HH:mm:ss");
@@ -780,6 +848,8 @@ namespace OnCourtData
                             if (rdr["RPWOF_" + _statsForOnePlayer.IndexStatForMatch].ToString() != "")
                                 _statsForOnePlayer.RPWOF_1 = Convert.ToInt16(rdr["RPWOF_" + _statsForOnePlayer.IndexStatForMatch]);
                         }
+                        _match.createStatsObjectForPlayers(statsByPlayers);
+
                     }
                     if (Convert.ToString(rdr["cote1"]) != "")
                         _match.Odds1 = Math.Round(Convert.ToDouble(rdr["cote1"]), 2);
@@ -861,15 +931,12 @@ namespace OnCourtData
         }
 
         public static List<Tournament> getListTodayTrnSql(string aConnectionString
-            , bool aIsAtp, bool aIsIncludeFinishedTrn, int aNbTrnForFinished)
+            , bool aIsAtp)
         {
-            string _strQuery = "select DISTINCT tours.id_t, tours.name_t, tours.site_t, tours.date_t as dateA, tours.ID_C_T, tours.link_t, tours.rank_t, tours.site_t "
+            string _strQuery = "select DISTINCT tours.id_t, tours.name_t, tours.site_t, tours.date_t as dateA"
+            +", tours.ID_C_T, tours.link_t, tours.rank_t, tours.site_t "
             + " from today_atp as today left join tours_atp as tours on today.tour = tours.id_t "
             + " where (tours.rank_t > -1)";
-            if (aIsIncludeFinishedTrn)
-                _strQuery = "select TOP "+ aNbTrnForFinished + " id_t, name_t, tours.date_t as dateA, tours.ID_C_T, tours.link_t, tours.rank_t, tours.site_t "
-                + " from tours_atp as tours where (tours.rank_t > 0) AND (tours.date_t < now)"
-                + " order by date_t DESC";
             if (!aIsAtp)
                 _strQuery=_strQuery.Replace("_atp", "_wta");
             DbDataReader rdr = null;
@@ -901,6 +968,127 @@ namespace OnCourtData
                     _collectionTournaments.Add(_trn);
                 }
                 return _collectionTournaments;
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Impossible to connect to the database, please contact the support (Error: " + e.Message + " )");
+                return null;
+            }
+            finally
+            {
+                if (rdr != null)
+                {
+                    rdr.Close();
+                }
+                if (myConnection != null)
+                {
+                    myConnection.Close();
+                }
+
+            }
+
+        }
+        public static List<Tournament> getListTrnSql(string aConnectionString
+            , bool aIsAtp, int aNbTrn, int sinceYear, int aLevelTrnMin=1)
+        {
+            string _strQuery =  "select TOP " + aNbTrn + " id_t, name_t, tours.date_t as dateA, tours.ID_C_T"
+                    + ", tours.link_t, tours.rank_t, tours.site_t "
+                + " from tours_atp as tours where (tours.rank_t >= "+ aLevelTrnMin + ") AND (tours.date_t < now)"
+                + "  AND (tours.date_t > #12/15/"+(sinceYear-1)+"#) "
+                + " order by date_t DESC";
+            if (!aIsAtp)
+                _strQuery = _strQuery.Replace("_atp", "_wta");
+            DbDataReader rdr = null;
+            DbConnection myConnection;
+            string _stringConnection = aConnectionString;
+            myConnection = new OleDbConnection(_stringConnection);
+
+            try
+            {
+                OleDbCommand myCommand = new OleDbCommand(_strQuery, (OleDbConnection)myConnection);
+                myCommand.CommandType = CommandType.Text;
+                myConnection.Open();
+                rdr = myCommand.ExecuteReader();
+
+                List<Tournament> _collectionTournaments = new List<Tournament>();
+                while (rdr.Read())
+                {
+                    Tournament _trn = new Tournament(aIsAtp)
+                    {
+                        //Date = (Convert.ToString(rdr["DateM"]) != "" ? Convert.ToDateTime(rdr["DateM"]) : Convert.ToDateTime(rdr["DateM"])),
+                        Name = Convert.ToString(rdr["name_t"]),
+                        Id = Convert.ToInt64(rdr["id_t"]),
+                        Date = Convert.ToDateTime(rdr["DateA"]),
+                        CourtId = Convert.ToInt32(rdr["ID_C_T"]),
+                        Rank = Convert.ToInt16(rdr["rank_t"]),
+                        TournamentSite = Convert.ToString(rdr["site_t"]).Trim()
+                    };
+                    _trn.IdPreviousEdition = (Convert.ToString(rdr["link_t"]) != "" ? Convert.ToInt64(rdr["link_t"]) : -1);
+                    _collectionTournaments.Add(_trn);
+                }
+                return _collectionTournaments;
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Impossible to connect to the database, please contact the support (Error: " + e.Message + " )");
+                return null;
+            }
+            finally
+            {
+                if (rdr != null)
+                {
+                    rdr.Close();
+                }
+                if (myConnection != null)
+                {
+                    myConnection.Close();
+                }
+
+            }
+
+        }
+        public static async Task<List<Tournament>> getListTodayTrnSqlAsync(string aConnectionString
+            , bool aIsAtp, bool aIsIncludeFinishedTrn, int aNbTrnForFinished)
+        {
+            string _strQuery = "select DISTINCT tours.id_t, tours.name_t, tours.site_t, tours.date_t as dateA, tours.ID_C_T, tours.link_t, tours.rank_t, tours.site_t "
+            + " from today_atp as today left join tours_atp as tours on today.tour = tours.id_t "
+            + " where (tours.rank_t > -1)";
+            if (aIsIncludeFinishedTrn)
+                _strQuery = "select TOP " + aNbTrnForFinished + " id_t, name_t, tours.date_t as dateA, tours.ID_C_T, tours.link_t, tours.rank_t, tours.site_t "
+                + " from tours_atp as tours where (tours.rank_t > 0) AND (tours.date_t < now)"
+                + " order by date_t DESC";
+            if (!aIsAtp)
+                _strQuery = _strQuery.Replace("_atp", "_wta");
+            DbDataReader rdr = null;
+            DbConnection myConnection;
+            string _stringConnection = aConnectionString;
+            myConnection = new OleDbConnection(_stringConnection);
+
+            try
+            {
+                OleDbCommand myCommand = new OleDbCommand(_strQuery, (OleDbConnection)myConnection);
+                myCommand.CommandType = CommandType.Text;
+                myConnection.Open();
+                rdr = myCommand.ExecuteReader();
+
+                List<Tournament> _collectionTournaments = new List<Tournament>();
+                while (rdr.Read())
+                {
+                    Tournament _trn = new Tournament(aIsAtp)
+                    {
+                        //Date = (Convert.ToString(rdr["DateM"]) != "" ? Convert.ToDateTime(rdr["DateM"]) : Convert.ToDateTime(rdr["DateM"])),
+                        Name = Convert.ToString(rdr["name_t"]),
+                        Id = Convert.ToInt64(rdr["id_t"]),
+                        Date = Convert.ToDateTime(rdr["DateA"]),
+                        CourtId = Convert.ToInt32(rdr["ID_C_T"]),
+                        Rank = Convert.ToInt16(rdr["rank_t"]),
+                        TournamentSite = Convert.ToString(rdr["site_t"]).Trim()
+                    };
+                    _trn.IdPreviousEdition = (Convert.ToString(rdr["link_t"]) != "" ? Convert.ToInt64(rdr["link_t"]) : -1);
+                    _collectionTournaments.Add(_trn);
+                }
+                return await Task.Run(() => {
+                    return _collectionTournaments; });
             }
             catch (Exception e)
             {
@@ -1166,8 +1354,7 @@ namespace OnCourtData
 
         public static List<Match> getListMatchesForTrnNotFinishedSql(string aConnectionString, long aTrnId
             , bool aIsAtp, bool aIsOnlyFinishedTournaments
-            , bool aIsIncludeCategories
-            , bool aIsIncludeUnknownValues)
+            , bool aIsIncludeCategories, bool aIsIncludeUnknownValues)
         {
             string _strClauseSelect_Categories = " , categoriesP1.CAT1 as P1C1, categoriesP1.CAT2 as P1C2, categoriesP1.CAT3 as P1C3, categoriesP1.CAT4 as P1C4, categoriesP1.CAT5 as P1C5, " +
                 "  categoriesP1.CAT6 as P1C6, categoriesP1.CAT7 as P1C7, categoriesP1.CAT8 as P1C8, categoriesP1.CAT9 as P1C9 "
@@ -1184,10 +1371,14 @@ namespace OnCourtData
             string _sqlClauseOrderBy = " ORDER BY today.round DESC, today.DRAW ASC ";
             if (aIsOnlyFinishedTournaments)
                 _sqlClauseOrderBy = " ORDER BY rounds.id_r DESC, games.ID_R_G ASC";
-            string _strQuery = "SELECT trnmt.NAME_T as TRN, trnmt.rank_t as TournoiRang, Player1.NAME_P AS J1, Player2.NAME_P AS J2 "
+            string _strQuery = "SELECT trnmt.NAME_T as TRN, trnmt.ID_T as TrnId, trnmt.rank_t as TournoiRang, Player1.NAME_P AS J1, Player2.NAME_P AS J2 "
             + ", today.RESULT as Result, surfaces.name_c as Surface, surfaces.id_c as IDSurface "
             + ", today.ID1 as ID1, today.ID2 as ID2, rounds.name_r as Tour, rounds.id_r as IDTour "
-            + ", player1.rank_p  as RANK1, player2.rank_p  as RANK2, today.draw as DRAW ,player1.date_p as date1, player2.date_p as date2 "
+
+            + " , today.DATE_GAME as DateM "
+            + " , trnmt.date_t as DateT "
+
+            +", player1.rank_p  as RANK1, player2.rank_p  as RANK2, today.draw as DRAW ,player1.date_p as date1, player2.date_p as date2 "
             + (aIsIncludeCategories ? _strClauseSelect_Categories : "") 
             + " FROM (((((" + (aIsIncludeCategories ? "((" : "") +  " today_atp as today "
             + "LEFT OUTER JOIN Players_atp as player1 "
@@ -1214,6 +1405,7 @@ namespace OnCourtData
                 _strQuery = _strQuery.Replace("today.ID1", "games.ID1_G");
                 _strQuery = _strQuery.Replace("today.ID2", "games.ID2_G");
                 _strQuery = _strQuery.Replace("today.draw", "games.RESULT_G");
+                _strQuery = _strQuery.Replace("today.DATE_GAME", "games.DATE_G");
                 _strQuery = _strQuery.Replace("today_atp", "Games_atp");
                 _strQuery = _strQuery.Replace("today.round", "games.ID_R_G");
                 _strQuery = _strQuery.Replace("today.TOUR", "games.ID_T_G");
@@ -1239,7 +1431,9 @@ namespace OnCourtData
                     Match _match = new Match(aIsAtp)
                     {
                         //Date = (Convert.ToString(rdr["DateM"]) != "" ? Convert.ToDateTime(rdr["DateM"]) : Convert.ToDateTime(rdr["DateM"])),
+                        Date = (Convert.ToString(rdr["DateM"]) != "" ? Convert.ToDateTime(rdr["DateM"]) : Convert.ToDateTime(rdr["DateT"])),
                         TournamentName = Convert.ToString(rdr["TRN"]),
+                        TournamentId = Convert.ToInt32(rdr["TrnId"]),
                         TournamentRank = Convert.ToInt16(rdr["TournoiRang"]),
                         Player1Name = Convert.ToString(rdr["J1"]),
                         Player2Name = Convert.ToString(rdr["J2"]),
@@ -1271,6 +1465,7 @@ namespace OnCourtData
                                         _match.ListCategoriesIdP2.Add(i);
                             }
                         }
+                        
                     }
                     try
                     {
@@ -1308,17 +1503,16 @@ namespace OnCourtData
             }
 
         }
-
-        public static void postNotesForMatchSql(string aConnectionString, string aNote1P1, string aNote2P1
+        public static void postMyRankingsForMatchSql(string aConnectionString, string aNote1P1, string aNote2P1
             , string aNote1P2, string aNote2P2, bool aIsAtp, long aIdTrn, int aIdRound, long aIdP1, long aIdP2)
         {
             if (aNote1P1 == "" && aNote1P2 == "" && aNote2P1 == "" && aNote2P2 == "")
                 return;
             string _strQuery = "DELETE FROM MyRankings_atp "
                 + " WHERE id_t_m ='" + aIdTrn + "' AND id_r_m = '" + aIdRound
-                + "' AND ((id1_m = '"+ aIdP1 + "' AND id2_m = '"+ aIdP2+"' ) OR (id1_m = '" + aIdP2 + "' AND id2_m = '" + aIdP1 + "' ))";
+                + "' AND ((id1_m = '" + aIdP1 + "' AND id2_m = '" + aIdP2 + "' ) OR (id1_m = '" + aIdP2 + "' AND id2_m = '" + aIdP1 + "' ))";
             if (!aIsAtp)
-                _strQuery=_strQuery.Replace("_atp", "_wta");
+                _strQuery = _strQuery.Replace("_atp", "_wta");
             DbConnection myConnection;
             string _stringConnection = aConnectionString;
             myConnection = new OleDbConnection(_stringConnection);
@@ -1334,7 +1528,7 @@ namespace OnCourtData
                         + " (rankestim1_m, rankestim2_m, note1, note2, id1_m, id2_m, id_t_m, id_r_m) "
                         + " VALUES (@Note1P1, @Note1P2, @Note2P1, @Note2P2, @IdP1, @IdP2, @IdTrn, @IdRound)";
                 if (!aIsAtp)
-                    _strQuery=_strQuery.Replace("_atp", "_wta");
+                    _strQuery = _strQuery.Replace("_atp", "_wta");
                 myCommand = new OleDbCommand(_strQuery, (OleDbConnection)myConnection);
                 myCommand.Parameters.AddWithValue("@Note1P1", aNote1P1);
                 myCommand.Parameters.AddWithValue("@Note1P2", aNote1P2);
@@ -1354,15 +1548,81 @@ namespace OnCourtData
             {
                 MessageBox.Show("Impossible to connect to the database, please contact the support (Error: " + e.Message + " )");
             }
+            finally
+            {
+                if (myConnection != null)
+                {
+                    myConnection.Close();
+                }
+
+            }
+        }
+        public static void postMyRankingsForMatchSql(string aConnectionString, string aNote1P1, string aNote2P1
+            , string aNote1P2, string aNote2P2, bool aIsAtp, long aIdTrn, int aIdRound, long aIdP1, long aIdP2
+            , bool wind , bool wind2)
+        {
+            string _strQuery = "DELETE FROM MyRankings_atp "
+                + " WHERE id_t_m ='" + aIdTrn + "' AND id_r_m = '" + aIdRound
+                + "' AND ((id1_m = '"+ aIdP1 + "' AND id2_m = '"+ aIdP2+"' ) OR (id1_m = '" + aIdP2 + "' AND id2_m = '" + aIdP1 + "' ))";
+            if (!aIsAtp)
+                _strQuery=_strQuery.Replace("_atp", "_wta");
+            DbConnection myConnection;
+            string _stringConnection = aConnectionString;
+            myConnection = new OleDbConnection(_stringConnection);
+            try
+            {
+                OleDbCommand myCommand = new OleDbCommand(_strQuery, (OleDbConnection)myConnection);
+                myCommand.CommandType = CommandType.Text;
+                myConnection.Open();
+                int _nbDel = myCommand.ExecuteNonQuery();
+                Trace.WriteLine(_nbDel + " records deleted");
+                myConnection.Close();
+                _strQuery = "insert into MyRankings_atp "
+                        + " (rankestim1_m, rankestim2_m, note1, note2, id1_m, id2_m, id_t_m, id_r_m, Wind, Wind2) "
+                        + " VALUES (@Note1P1, @Note1P2, @Note2P1, @Note2P2, @IdP1, @IdP2, @IdTrn, @IdRound, @Wind, @Wind2)";
+                if (!aIsAtp)
+                    _strQuery=_strQuery.Replace("_atp", "_wta");
+                myCommand = new OleDbCommand(_strQuery, (OleDbConnection)myConnection);
+                myCommand.Parameters.AddWithValue("@Note1P1", aNote1P1);
+                myCommand.Parameters.AddWithValue("@Note1P2", aNote1P2);
+                myCommand.Parameters.AddWithValue("@Note2P1", aNote2P1);
+                myCommand.Parameters.AddWithValue("@Note2P2", aNote2P2);
+                myCommand.Parameters.AddWithValue("@IdP1", aIdP1);
+                myCommand.Parameters.AddWithValue("@IdP2", aIdP2);
+                myCommand.Parameters.AddWithValue("@IdTrn", aIdTrn);
+                myCommand.Parameters.AddWithValue("@IdRound", aIdRound);
+                myCommand.Parameters.AddWithValue("@Wind", wind?1:0);
+                myCommand.Parameters.AddWithValue("@Wind2", wind2?1:0);
+                myCommand.CommandType = CommandType.Text;
+                myConnection.Open();
+                int _nbRows = myCommand.ExecuteNonQuery();
+                Trace.WriteLine(_nbRows + " records added");
+
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Impossible to connect to the database, please contact the support (Error: " + e.Message + " )");
+            }
+            finally
+            {
+                if (myConnection != null)
+                {
+                    myConnection.Close();
+                }
+
+            }
         }
         
-        public static void loadNotesForMatchSql(string aConnectionString, out string aNote1P1, out string aNote2P1
-            , out string aNote1P2, out string aNote2P2, bool aIsAtp, long aIdTrn, int aIdRound, long aIdP1, long aIdP2)
+        public static void loadMyRankingsForMatchSql(string aConnectionString, out string aNote1P1, out string aNote2P1
+            , out string aNote1P2, out string aNote2P2, bool aIsAtp, long aIdTrn, int aIdRound, long aIdP1, long aIdP2
+            ,out bool wind,out bool wind2)
         {
             aNote1P1 = "";
             aNote2P1 = "";
             aNote1P2 = "";
             aNote2P2 = "";
+            wind = false;
+            wind2 = false;
             string _strQuery = "SELECT * FROM MyRankings_atp "
                 + " WHERE id_t_m ='" + aIdTrn + "' AND id_r_m = '" + aIdRound
                 + "' AND ((id1_m = '" + aIdP1 + "' AND id2_m = '" + aIdP2 + "' ) OR (id1_m = '" + aIdP2 + "' AND id2_m = '" + aIdP1 + "' ))";
@@ -1384,7 +1644,10 @@ namespace OnCourtData
                     aNote2P1 = Convert.ToString(rdr["note1"]);
                     aNote1P2 = Convert.ToString(rdr["rankestim2_m"]);
                     aNote2P2 = Convert.ToString(rdr["note2"]);
-
+                    string strwind = Convert.ToString(rdr["Wind"]);
+                    wind = strwind == "1";
+                    string strwind2 = Convert.ToString(rdr["Wind2"]);
+                    wind2 = strwind2 == "1";
                 }
             }
             catch (Exception e)
@@ -1406,7 +1669,66 @@ namespace OnCourtData
 
         }
 
-        public static string getNoteFromIdSql(long aIdPlayer, string aConnectionString)
+        /// <summary>
+        /// returns list of matches(idTrn, idRnd, idP1, idP2) where wind2=true
+        /// </summary>
+        /// <param name="aConnectionString"></param>
+        /// <param name="aIsAtp"></param>
+        /// <param name="aIdTrn"></param>
+        /// <param name="aIdRound"></param>
+        /// <param name="aIdP1"></param>
+        /// <returns></returns>
+        public static List<(long, int, long, long)> 
+            loadMyRankingsWithWind2ForPlayerSql(string aConnectionString
+            , bool aIsAtp, long aIdP1)
+        {
+            List<(long, int, long, long)> listMatches 
+                = new List<(long, int, long, long)>();
+            string _strQuery = "SELECT * FROM MyRankings_atp "
+                + " WHERE  ((id1_m = '" + aIdP1 + "' ) OR (id2_m = '" + aIdP1 + "' )) AND Wind2 = 1";
+            if (!aIsAtp)
+                _strQuery = _strQuery.Replace("_atp", "_wta");
+            DbDataReader rdr = null;
+            DbConnection myConnection;
+            string _stringConnection = aConnectionString;
+            myConnection = new OleDbConnection(_stringConnection);
+            try
+            {
+                OleDbCommand myCommand = new OleDbCommand(_strQuery, (OleDbConnection)myConnection);
+                myCommand.CommandType = CommandType.Text;
+                myConnection.Open();
+                rdr = myCommand.ExecuteReader();
+                while (rdr.Read())
+                {
+                    long idTrn = Convert.ToInt64(rdr["id_t_m"]);
+                    int idRnd = Convert.ToInt16(rdr["id_r_m"]);
+                    long idP1 = Convert.ToInt64(rdr["id1_m"]);
+                    long idP2 = Convert.ToInt64(rdr["id2_m"]);
+                    listMatches.Add((idTrn,idRnd,idP1,idP2));
+                }
+                return listMatches;
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Impossible to connect to the database, please contact the support (Error: " + e.Message + " )");
+                return listMatches;
+            }
+            finally
+            {
+                if (rdr != null)
+                {
+                    rdr.Close();
+                }
+                if (myConnection != null)
+                {
+                    myConnection.Close();
+                }
+
+            }
+
+        }
+
+        public static string getPlayerNoteFromIdSql(long aIdPlayer, string aConnectionString)
         {
             string aNote = "";
             string _strQuery = "SELECT * FROM Notes where Id="  + aIdPlayer;
@@ -1478,6 +1800,13 @@ namespace OnCourtData
             catch (Exception e)
             {
                 MessageBox.Show("Impossible to connect to the database, please contact the support (Error: " + e.Message + " )");
+            }
+            finally
+            {
+                if (myConnection != null)
+                {
+                    myConnection.Close();
+                }
             }
         }
     
