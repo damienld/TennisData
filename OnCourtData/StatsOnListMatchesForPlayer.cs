@@ -452,7 +452,7 @@ namespace OnCourtData
         //private List<MatchDetailsWithOdds> ListMatches;
         [DisplayName("ROI")]
         public ROIStatForReport MatchMarket { get; set; }
-        [DisplayName("CourtRoi")]
+        [DisplayName("Court")]
         public ROIStatForReport AnySetMarketOnCourt
         {   
             get
@@ -574,18 +574,20 @@ namespace OnCourtData
         public ROIStatForReport AnySetMarketOnHardCourt { get; set; }
         [DisplayName("Clay")]
         public ROIStatForReport AnySetMarketOnClayCourt { get; set; }
-        [DisplayName("Indoors")]
+        [DisplayName("Indoor")]
         public ROIStatForReport AnySetMarketOnIndoorOrCarpetCourt { get; set; }
         [DisplayName("Grass")]
         public ROIStatForReport AnySetMarketOnGrassCourt { get; set; }
-        [DisplayName("2/0 or 3/0")]
+        [DisplayName("2/0|3/0")]
         public ROIStatForReport SetBettingMarketX_0 { get; set; }
-        [DisplayName("0/2 or 0/3")]
+        [DisplayName("0/2|0/3")]
         public ROIStatForReport SetBettingMarket0_X { get; set; }
-        [DisplayName("not 2/0")]
+        [DisplayName("no2/0")]
         public ROIStatForReport SetBettingMarketNotX_0 { get; set; }
-        [DisplayName("not 0/2")]
+        [DisplayName("no0/2")]
         public ROIStatForReport SetBettingMarketNot0_X { get; set; }
+        [DisplayName("Fat")]
+        public ROIStatForReport FatigueMarket { get; set; }
 
         /// <summary>
         /// index 100
@@ -633,6 +635,7 @@ namespace OnCourtData
             PlayerId = aIdPlayer;
             MatchMarket = new ROIStatForReport() { NameStat = "Match", IsRoi = true, IndexStat = 19 };
             Set1Market = new ROIStatForReport() { NameStat = "Set1", IsRoi = true, IndexStat = 10 };
+            FatigueMarket = new ROIStatForReport() { NameStat = "Fatigue", IsRoi = true, IndexStat = 70 };
             AnySetMarket = new ROIStatForReport() { NameStat = "AnySet", IsRoi = true, IndexStat = 11 };
             AnySetMarketOnHardCourt = new ROIStatForReport() { NameStat = "AnySetHard", IsRoi = true, IndexStat = 21 };
             AnySetMarketOnClayCourt = new ROIStatForReport() { NameStat = "AnySetClay", IsRoi = true, IndexStat = 22 };

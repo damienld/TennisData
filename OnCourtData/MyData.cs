@@ -10,7 +10,7 @@ namespace OnCourtData
     {
         public static List<string> fListAltitudeSitesATP =
             new List<long> { 589, 7161, 7776, 319, 306, 6169, 314, 7389, 576, 3352, 252, 213, 5063, 7795, 3994, 7075, 5016
-            , 9158, 7102, 3406, 8996,1536}
+            , 9158, 7102, 3406, 8996,1536, 9571, 9573}
             .ConvertAll(m=>m.ToString());
         //Gstaad;bogota;Medellin;Curitiba,Guada, Monterrey, MAdrod
         public static List<string> fListAltitudeSitesWTA =
