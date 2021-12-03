@@ -476,7 +476,7 @@ namespace OnCourtData
             }
         }
         [XmlIgnore]
-        [DisplayName("LH")]
+        [DisplayName("Lh")]
         public ROIStatForReport RoiVsLH
         {
             get
@@ -485,7 +485,7 @@ namespace OnCourtData
             }
         }
         [XmlIgnore]
-        [DisplayName("ACA")]
+        [DisplayName("Aca")]
         public ROIStatForReport RoiVsACA
         {
             get
@@ -494,7 +494,7 @@ namespace OnCourtData
             }
         }
         [XmlIgnore]
-        [DisplayName("ACD")]
+        [DisplayName("Acd")]
         public ROIStatForReport RoiVsACD
         {
             get
@@ -512,7 +512,7 @@ namespace OnCourtData
             }
         }
         [XmlIgnore]
-        [DisplayName("Temp")]
+        [DisplayName("Tmp")]
         public ROIStatForReport RoiVsTemp
         {
             get
@@ -521,7 +521,7 @@ namespace OnCourtData
             }
         }
         [XmlIgnore]
-        [DisplayName("SER")]
+        [DisplayName("Srv")]
         public ROIStatForReport RoiVsSER
         {
             get
@@ -530,7 +530,7 @@ namespace OnCourtData
             }
         }
         [XmlIgnore]
-        [DisplayName("S&V")]
+        [DisplayName("Net")]
         public ROIStatForReport RoiVsSV
         {
             get
@@ -539,7 +539,7 @@ namespace OnCourtData
             }
         }
         [XmlIgnore]
-        [DisplayName("Slo")]
+        [DisplayName("loSrv")]
         public ROIStatForReport RoiVsSlo
         {
             get
@@ -556,6 +556,43 @@ namespace OnCourtData
                 return AnySetMarketByCategories?[8];
             }
         }
+        [XmlIgnore]
+        [DisplayName("Def")]
+        public ROIStatForReport RoiVsDef
+        {
+            get
+            {
+                return AnySetMarketByCategories?[9];
+            }
+        }
+        [XmlIgnore]
+        [DisplayName("FlaB")]
+        public ROIStatForReport RoiVsFlaB
+        {
+            get
+            {
+                return AnySetMarketByCategories?[10];
+            }
+        }
+        [XmlIgnore]
+        [DisplayName("1Bh")]
+        public ROIStatForReport RoiVs1Bh
+        {
+            get
+            {
+                return AnySetMarketByCategories?[11];
+            }
+        }
+        [XmlIgnore]
+        [DisplayName("FlaF")]
+        public ROIStatForReport RoiVsFlaF
+        {
+            get
+            {
+                return AnySetMarketByCategories?[12];
+            }
+        }
+
         [Browsable(false)]
         public List<ROIStatForReport> MatchMarketByCategories { get; set; }
         [Browsable(false)]
@@ -662,28 +699,28 @@ namespace OnCourtData
             if (aListCategoriesIdForOpp != null)
             {
                 MatchMarketByCategories = new List<ROIStatForReport>();
-                foreach (int _catId in Categorie.fListCategories.Keys)
+                foreach (int _catId in SqlOnCourt.fListCategories.Keys)
                     MatchMarketByCategories.Add(new ROIStatForReport()
                     {
-                        NameStat = Categorie.fListCategories[_catId]
+                        NameStat = SqlOnCourt.fListCategories[_catId]
                         ,
                         IsRoi = true,
                         IndexStat = _catId
                     });
                 MatchMarketByCategoriesOnCourt = new List<ROIStatForReport>();
-                foreach (int _catId in Categorie.fListCategories.Keys)
+                foreach (int _catId in SqlOnCourt.fListCategories.Keys)
                     MatchMarketByCategoriesOnCourt.Add(new ROIStatForReport()
                     {
-                        NameStat = Categorie.fListCategories[_catId]
+                        NameStat = SqlOnCourt.fListCategories[_catId]
                         ,
                         IsRoi = true,
                         IndexStat = _catId
                     });
                 AnySetMarketByCategories = new List<ROIStatForReport>();
-                foreach (int _catId in Categorie.fListCategories.Keys)
+                foreach (int _catId in SqlOnCourt.fListCategories.Keys)
                     AnySetMarketByCategories.Add(new ROIStatForReport()
                     {
-                        NameStat = Categorie.fListCategories[_catId]
+                        NameStat = SqlOnCourt.fListCategories[_catId]
                         ,
                         IsRoi = true,
                         IndexStat = _catId

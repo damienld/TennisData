@@ -17,9 +17,7 @@ namespace OnCourtData
         {
             return this.Name;
         }
-        public static Dictionary<int, string> fListCategories = new Dictionary<int, string>()
-        { {1,"LH" }, {2,"ACA"}, {3,"ACD"}, {4,"For"}, {5,"Temp"}, {6,"SER"}, {7,"S&V"}, {8,"Slo"}, {9,"Sli"} };
-
+        
     }
 
     public class CategoriesCollection : ObservableCollection<Categorie>

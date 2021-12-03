@@ -121,26 +121,8 @@ namespace OnCourtData
             return getPredictedAcesRatePlayerWithSpeed(yearlyAvgAceRate, yearlyAvgAceRateOpp, 1, aIdCourtOf3, isATP);
 
         }
-        public static string csvHeader = "Date,TrnId,Trn,TrnRk,TrnSite,"
-            + "CourtId,RoundId,Round,P1Id,P1,P2Id,P2,"
-            + "Result,IndexP,Player,AceRatePlayer,SrvPtsWonPlayer,FirstSrvPtsWonP1";
-        public string ToCsvLine(bool isPlayer1)
-        {
-            int indexPlayer = 0;
-            string nameP = this.Player1Name.Replace(",", ";");
-            if (!isPlayer1)
-            {
-                indexPlayer = 1;
-                nameP = this.Player2Name.Replace(",", ";");
-            }
-            return $"{this.Date},{this.TournamentId},{this.TournamentName.Replace(",", ";")},{this.TournamentRank},{this.TournamentSite}"
-                + $",{this.CourtName},{this.RoundId},{this.RoundName},{this.Id1},{this.Player1Name.Replace(",", ";")},{this.Id2},{this.Player2Name.Replace(",", ";")}"
-                + $",{this.ResultString},{indexPlayer},{nameP},"
-                + $"{this.StatsByPlayers[indexPlayer].getPctAceByPointsOnServe()}"
-                + $",{this.StatsByPlayers[indexPlayer].getServePctWon()},{this.StatsByPlayers[indexPlayer].getFirstServePctWon()}"
-                ;
-        }
-
+        
+        
         [System.ComponentModel.Browsable(false)]
         protected bool IsATP { get; set; }
         [System.ComponentModel.Browsable(false)]
@@ -155,12 +137,12 @@ namespace OnCourtData
         /// <param name="idTrn"></param>
         /// <param name="isATP"></param>
         /// <returns></returns>
-        public double getTrnSpeed(bool isATP)
+        public (double, int) getTrnSpeed(bool isATP)
         {
             AceReportTrn trnAce = AceReportTrn.getTrnSpeed(this.TournamentId, isATP);
             if (trnAce != null)
-                return Math.Round(trnAce.SpeedAmongCourtCateg, 2);
-            else return 0;
+                return (Math.Round(trnAce.SpeedAmongCourtCateg, 2), trnAce.NbMatchesForSpeedAmongCourtCateg);
+            else return (0,0);
         }
         public override string ToString()
         {

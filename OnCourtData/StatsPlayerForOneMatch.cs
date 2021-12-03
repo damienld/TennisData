@@ -313,9 +313,15 @@ namespace OnCourtData
         [Column(Name = "MT")]
         public string MT { get; set; }
 
-        public TimeSpan getMatchTime()
+        public double? getMatchTimeinMn()
         {
-            return TimeSpan.ParseExact(MT, "hh\\:mm\\:ss", System.Globalization.CultureInfo.InvariantCulture);
+            if (MT.Trim() == "")
+                return null;
+            else
+                try {
+                    return TimeSpan.ParseExact(MT, "hh\\:mm\\:ss", System.Globalization.CultureInfo.InvariantCulture).TotalMinutes;
+                }
+                catch { return null; }
         }
         
 

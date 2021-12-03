@@ -8,6 +8,7 @@ using System.Data;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Configuration;
 
 namespace OnCourtData
 {
@@ -17,7 +18,9 @@ namespace OnCourtData
         public static string connectionStringMyRankings = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=..\\MyRankings.mdb;User ID=;Persist Security Info=true;";
         public static string connectionStringMyNotes = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=..\\MyNotes.mdb;User ID=;Persist Security Info=true;";
         public static string connectionStringMyTrn = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=..\\MyTrn.mdb;User ID=;Persist Security Info=true;";
-
+        public const string connectionStringMyCat = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=..\\MyCategories.mdb;User ID=;Persist Security Info=true;";
+        public static int nbCategories = Convert.ToInt16(ConfigurationManager.AppSettings["Categories"]);
+        public static Dictionary<int, string> fListCategories = null;
         public static PlayersCollection getListPlayersSqlEndOfYear(string aConnectionString, bool aIsAtp
             , int aYear, int aRankMax)
         {
@@ -57,7 +60,7 @@ namespace OnCourtData
             }
             catch (Exception e)
             {
-                MessageBox.Show("Impossible to connect to the database, please contact the support (Error: " + e.Message + " )");
+                MessageBox.Show("SQL Error <getListPlayersSqlEndOfYear>, please contact the support (Error: " + e.Message + " )");
                 return new PlayersCollection();
             }
             finally
@@ -77,11 +80,15 @@ namespace OnCourtData
         public static PlayersCollection getListPlayersSql(string aFilter, string aConnectionString
             , int aNbTopPlayersToLoadUp, bool aIsAtp)
         {
-            string _strClauseSelect_Categories = " , categoriesP1.CAT1 as P1C1, categoriesP1.CAT2 as P1C2, categoriesP1.CAT3 as P1C3, categoriesP1.CAT4 as P1C4, categoriesP1.CAT5 as P1C5, " +
-                "  categoriesP1.CAT6 as P1C6, categoriesP1.CAT7 as P1C7, categoriesP1.CAT8 as P1C8, categoriesP1.CAT9 as P1C9 ";
+            string _strClauseSelect_Categories = "";// " , categoriesP1.CAT1 as P1C1, categoriesP1.CAT2 as P1C2, categoriesP1.CAT3 as P1C3, categoriesP1.CAT4 as P1C4, categoriesP1.CAT5 as P1C5, " +
+                //"  categoriesP1.CAT6 as P1C6, categoriesP1.CAT7 as P1C7, categoriesP1.CAT8 as P1C8, categoriesP1.CAT9 as P1C9 ";
             string _strClauseJoin_Categories = " LEFT OUTER JOIN categories_atp as categoriesP1 " +
         " ON categoriesP1.id_p = players.ID_P  ";
-
+            foreach (int i in SqlOnCourt.fListCategories.Keys)
+            {
+                _strClauseSelect_Categories += String.Format(", categoriesP1.CAT{0} as P1C{0} "
+                    , i);
+            }
             string _strQuery = "SELECT " + (aNbTopPlayersToLoadUp > -1 ? " TOP " + aNbTopPlayersToLoadUp : "") +
                               " players.NAME_P AS Nom, players.ID_P as ID, Players.rank_p as Rank" +
                               _strClauseSelect_Categories +
@@ -118,19 +125,26 @@ namespace OnCourtData
                     if (!rdr.IsDBNull(colIndex))
                         _player.Rank = Convert.ToInt32(rdr["Rank"]);
                     _player.ListCategoriesId = new List<int>();
-                    for (int i = 1; i <= 9; i++)
+                    /*for (int i = 1; i <= 9; i++)
+                    {
+                        string _nameField = "P1C" + i;
+                        if (Convert.ToBoolean(rdr[_nameField]))
+                            _player.ListCategoriesId.Add(i);
+                    }*/
+                    foreach (int i in SqlOnCourt.fListCategories.Keys)
                     {
                         string _nameField = "P1C" + i;
                         if (Convert.ToBoolean(rdr[_nameField]))
                             _player.ListCategoriesId.Add(i);
                     }
+                    
                     _collectionPlayers.Add(_player);
                 }
                 return _collectionPlayers;
             }
             catch (Exception e)
             {
-                MessageBox.Show("Impossible to connect to the database, please contact the support (Error: " + e.Message + " )");
+                MessageBox.Show("SQL Error <getListPlayersSql>, please contact the support (Error: " + e.Message + " )");
                 return null;
             }
             finally
@@ -178,7 +192,7 @@ namespace OnCourtData
             }
             catch (Exception e)
             {
-                MessageBox.Show("Impossible to connect to the database, please contact the support (Error: " + e.Message + " )");
+                MessageBox.Show("SQL Error <getRankPlayer_Sql>, please contact the support (Error: " + e.Message + " )");
                 return -1;
             }
             finally
@@ -281,7 +295,7 @@ namespace OnCourtData
             }
             catch (Exception e)
             {
-                MessageBox.Show("Impossible to connect to the database, please contact the support (Error: " + e.Message + " )");
+                MessageBox.Show("SQL Error<getStatsForMatchSql>, please contact the support (Error: " + e.Message + " )");
                 List<StatsPlayerForOneMatch> _ListProcessedStats = new List<StatsPlayerForOneMatch>();
                 _ListProcessedStats.Add(new StatsPlayerForOneMatch(1));
                 _ListProcessedStats.Add(new StatsPlayerForOneMatch(2));
@@ -327,14 +341,24 @@ namespace OnCourtData
      " ON seedP1.ID_P_S = games.ID1_G AND seedP1.ID_T_S = games.id_t_g ) " +
      " left outer join seed_atp as seedP2 " +
      " ON seedP2.ID_P_S = games.ID2_G AND seedP2.ID_T_S = games.id_t_g ) ";
-            string _strClauseSelect_Categories = " , categoriesP1.CAT1 as P1C1, categoriesP1.CAT2 as P1C2, categoriesP1.CAT3 as P1C3, categoriesP1.CAT4 as P1C4, categoriesP1.CAT5 as P1C5, " +
+            string _strClauseSelect_Categories = "";/* " , categoriesP1.CAT1 as P1C1, categoriesP1.CAT2 as P1C2, categoriesP1.CAT3 as P1C3, categoriesP1.CAT4 as P1C4, categoriesP1.CAT5 as P1C5, " +
                 "  categoriesP1.CAT6 as P1C6, categoriesP1.CAT7 as P1C7, categoriesP1.CAT8 as P1C8, categoriesP1.CAT9 as P1C9 " 
                 + " , categoriesP2.CAT1 as P2C1, categoriesP2.CAT2 as P2C2, categoriesP2.CAT3 as P2C3, categoriesP2.CAT4 as P2C4, categoriesP2.CAT5 as P2C5, " +
-                "  categoriesP2.CAT6 as P2C6, categoriesP2.CAT7 as P2C7, categoriesP2.CAT8 as P2C8, categoriesP2.CAT9 as P2C9 ";
-            string _strClauseGroupby_Categories = " , categoriesP1.CAT1, categoriesP1.CAT2, categoriesP1.CAT3, categoriesP1.CAT4, categoriesP1.CAT5, " +
+                "  categoriesP2.CAT6 as P2C6, categoriesP2.CAT7 as P2C7, categoriesP2.CAT8 as P2C8, categoriesP2.CAT9 as P2C9 ";*/
+            string _strClauseGroupby_Categories = "";/* " , categoriesP1.CAT1, categoriesP1.CAT2, categoriesP1.CAT3, categoriesP1.CAT4, categoriesP1.CAT5, " +
                 "  categoriesP1.CAT6, categoriesP1.CAT7 , categoriesP1.CAT8 , categoriesP1.CAT9  "
                 + " , categoriesP2.CAT1, categoriesP2.CAT2, categoriesP2.CAT3, categoriesP2.CAT4, categoriesP2.CAT5, " +
-                "  categoriesP2.CAT6, categoriesP2.CAT7 , categoriesP2.CAT8 , categoriesP2.CAT9  ";
+                "  categoriesP2.CAT6, categoriesP2.CAT7 , categoriesP2.CAT8 , categoriesP2.CAT9  ";*/
+            foreach (int i in SqlOnCourt.fListCategories.Keys)
+            {
+                _strClauseSelect_Categories += String.Format(", categoriesP1.CAT{0} as P1C{0}, categoriesP2.CAT{0} as P2C{0} "
+                    , i);
+            }
+            foreach (int i in SqlOnCourt.fListCategories.Keys)
+            {
+                _strClauseGroupby_Categories += String.Format(", categoriesP1.CAT{0}, categoriesP2.CAT{0} "
+                    , i);
+            }
             string _strClauseJoin_Categories = " LEFT OUTER JOIN categories_atp as categoriesP1 " +
         " ON categoriesP1.id_p = games.ID1_g ) " +
         " LEFT OUTER JOIN categories_atp as categoriesP2 " +
@@ -467,7 +491,7 @@ namespace OnCourtData
                         _match.ListCategoriesIdP2 = new List<int>();
                         for (int j = 1; j <= 2; j++)
                         {
-                            for (int i = 1; i <= 9; i++)
+                            foreach (int i in SqlOnCourt.fListCategories.Keys)
                             {
                                 string _nameField = "P" + j + "C" + i;
                                 if (Convert.ToBoolean(rdr[_nameField]))
@@ -537,7 +561,7 @@ namespace OnCourtData
             }
             catch (Exception e)
             {
-                MessageBox.Show("Impossible to connect to the database, please contact the support (Error: " + e.Message + " )");
+                MessageBox.Show("SQL Error<getLisMatchForPlayerSql>, please contact the support (Error: " + e.Message + " )");
                 return null;
             }
             finally
@@ -554,11 +578,104 @@ namespace OnCourtData
             }
 
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="aIdPlayer"></param>
+        /// <param name="aCatIds">Base 0</param>
+        /// <param name="aConnectionString"></param>
+        public static void updatePlayerCategoriesSql(long aIdPlayer, List<int> aCatIds, bool aIsATP, string aConnectionString)
+        {
+            if (aCatIds.Count == 0)
+                return;
+            string _nameFields = "";
+            for (int i = 1; i <= fListCategories.Count; i++)
+            {
+                int value = (aCatIds.Contains(i-1)?1:0);
+                _nameFields += "CAT" + i + "=" + value + ",";
+            }
+            //remove last ","
+            _nameFields=_nameFields.Remove(_nameFields.Count() - 1);
+            string _strQuery = "UPDATE Categories_atp SET "+_nameFields+" WHERE id_p=" + aIdPlayer;
+            if (!aIsATP)
+                _strQuery.Replace("atp", "wta");
+            DbConnection myConnection;
+            string _stringConnection = aConnectionString;
+            myConnection = new OleDbConnection(_stringConnection);
+            try
+            {
+                OleDbCommand myCommand = new OleDbCommand(_strQuery, (OleDbConnection)myConnection);
+                myCommand.CommandType = CommandType.Text;
+                myConnection.Open();
+                int _nbDel = myCommand.ExecuteNonQuery();
+                myConnection.Close();
+                MessageBox.Show("Categories updated!"+ _nbDel);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Impossible to cupdatePlayerCategoriesSql (Error: " + e.Message + " )");
+            }
+            finally
+            {
+                if (myConnection != null)
+                {
+                    myConnection.Close();
+                }
+            }
+        }
+
+        public static Dictionary<int, string> getListCategoriesSql(string aConnectionString= connectionStringMyCat)
+        {
+            string _strQuery = "SELECT ID_CAT, NAME_CAT " +
+                            "FROM Categories WHERE ID_CAT<=" + nbCategories + " ORDER BY ID_CAT";
+            DbDataReader rdr = null;
+            DbConnection myConnection;
+            string _stringConnection = aConnectionString;
+            myConnection = new OleDbConnection(_stringConnection);
+
+            try
+            {
+                OleDbCommand myCommand = new OleDbCommand(_strQuery, (OleDbConnection)myConnection);
+                myCommand.CommandType = CommandType.Text;
+                myConnection.Open();
+                rdr = myCommand.ExecuteReader();
+                Dictionary<int, string> fListCategories = new Dictionary<int, string>();
+                while (rdr.Read())
+                {
+
+                    fListCategories.Add(Convert.ToInt16(rdr["ID_CAT"]), Convert.ToString(rdr["NAME_CAT"]));
+                    
+                }
+                return fListCategories;
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Error in getListCategoriesSql, please contact the support (Error: " + e.Message + " )");
+                return null;
+            }
+            finally
+            {
+                if (rdr != null)
+                {
+                    rdr.Close();
+                }
+                if (myConnection != null)
+                {
+                    myConnection.Close();
+                }
+
+            }
+        }
 
         public static Player getPlayersDetailFromIdSql(long aIdPlayer, string aConnectionString, bool aIsAtp)
         {
-            string _strClauseSelect_Categories = " , categoriesP1.CAT1 as P1C1, categoriesP1.CAT2 as P1C2, categoriesP1.CAT3 as P1C3, categoriesP1.CAT4 as P1C4, categoriesP1.CAT5 as P1C5, " +
-                "  categoriesP1.CAT6 as P1C6, categoriesP1.CAT7 as P1C7, categoriesP1.CAT8 as P1C8, categoriesP1.CAT9 as P1C9 ";
+            string _strClauseSelect_Categories = "";// " , categoriesP1.CAT1 as P1C1, categoriesP1.CAT2 as P1C2, categoriesP1.CAT3 as P1C3, categoriesP1.CAT4 as P1C4, categoriesP1.CAT5 as P1C5, " +
+                //"  categoriesP1.CAT6 as P1C6, categoriesP1.CAT7 as P1C7, categoriesP1.CAT8 as P1C8, categoriesP1.CAT9 as P1C9 ";
+            foreach (int i in SqlOnCourt.fListCategories.Keys)
+            {
+                _strClauseSelect_Categories += String.Format(", categoriesP1.CAT{0} as P1C{0} "
+                    , i);
+            }
             string _strClauseJoin_Categories = " LEFT OUTER JOIN categories_atp as categoriesP1 ON categoriesP1.id_p = players.ID_P  ";
 
             string _strQuery = "SELECT  players.NAME_P AS Nom, players.ID_P as ID, Players.rank_p as Rank " +
@@ -593,7 +710,13 @@ namespace OnCourtData
                         _player.Rank = Convert.ToInt32(rdr["Rank"]);
 
                     _player.ListCategoriesId = new List<int>();
-                    for (int i = 1; i <= 9; i++)
+                    /*for (int i = 1; i <= 9; i++)
+                    {
+                        string _nameField = "P1C" + i;
+                        if (Convert.ToBoolean(rdr[_nameField]))
+                            _player.ListCategoriesId.Add(i);
+                    }*/
+                    foreach (int i in SqlOnCourt.fListCategories.Keys)
                     {
                         string _nameField = "P1C" + i;
                         if (Convert.ToBoolean(rdr[_nameField]))
@@ -1356,14 +1479,20 @@ namespace OnCourtData
             , bool aIsAtp, bool aIsOnlyFinishedTournaments
             , bool aIsIncludeCategories, bool aIsIncludeUnknownValues)
         {
-            string _strClauseSelect_Categories = " , categoriesP1.CAT1 as P1C1, categoriesP1.CAT2 as P1C2, categoriesP1.CAT3 as P1C3, categoriesP1.CAT4 as P1C4, categoriesP1.CAT5 as P1C5, " +
-                "  categoriesP1.CAT6 as P1C6, categoriesP1.CAT7 as P1C7, categoriesP1.CAT8 as P1C8, categoriesP1.CAT9 as P1C9 "
-                + " , categoriesP2.CAT1 as P2C1, categoriesP2.CAT2 as P2C2, categoriesP2.CAT3 as P2C3, categoriesP2.CAT4 as P2C4, categoriesP2.CAT5 as P2C5, " +
-                "  categoriesP2.CAT6 as P2C6, categoriesP2.CAT7 as P2C7, categoriesP2.CAT8 as P2C8, categoriesP2.CAT9 as P2C9 ";
-            string _strClauseGroupby_Categories = " , categoriesP1.CAT1, categoriesP1.CAT2, categoriesP1.CAT3, categoriesP1.CAT4, categoriesP1.CAT5, " +
+            string _strClauseSelect_Categories = " ";// " , categoriesP1.CAT1 as P1C1, categoriesP1.CAT2 as P1C2, categoriesP1.CAT3 as P1C3, categoriesP1.CAT4 as P1C4, categoriesP1.CAT5 as P1C5, " +
+                //"  categoriesP1.CAT6 as P1C6, categoriesP1.CAT7 as P1C7, categoriesP1.CAT8 as P1C8, categoriesP1.CAT9 as P1C9 "
+                //+ " , categoriesP2.CAT1 as P2C1, categoriesP2.CAT2 as P2C2, categoriesP2.CAT3 as P2C3, categoriesP2.CAT4 as P2C4, categoriesP2.CAT5 as P2C5, " +
+                //"  categoriesP2.CAT6 as P2C6, categoriesP2.CAT7 as P2C7, categoriesP2.CAT8 as P2C8, categoriesP2.CAT9 as P2C9 ";
+            foreach (int i in SqlOnCourt.fListCategories.Keys)
+            {
+                _strClauseSelect_Categories += String.Format(", categoriesP1.CAT{0} as P1C{0}, categoriesP2.CAT{0} as P2C{0} "
+                    , i);
+            }
+
+            /*string _strClauseGroupby_Categories = " , categoriesP1.CAT1, categoriesP1.CAT2, categoriesP1.CAT3, categoriesP1.CAT4, categoriesP1.CAT5, " +
                 "  categoriesP1.CAT6, categoriesP1.CAT7 , categoriesP1.CAT8 , categoriesP1.CAT9  "
                 + " , categoriesP2.CAT1, categoriesP2.CAT2, categoriesP2.CAT3, categoriesP2.CAT4, categoriesP2.CAT5, " +
-                "  categoriesP2.CAT6, categoriesP2.CAT7 , categoriesP2.CAT8 , categoriesP2.CAT9  ";
+                "  categoriesP2.CAT6, categoriesP2.CAT7 , categoriesP2.CAT8 , categoriesP2.CAT9  ";*/
             string _strClauseJoin_Categories = " LEFT OUTER JOIN categories_atp as categoriesP1 " +
         " ON categoriesP1.id_p = today.ID1 ) " +
         " LEFT OUTER JOIN categories_atp as categoriesP2 " +
@@ -1455,7 +1584,7 @@ namespace OnCourtData
                         _match.ListCategoriesIdP2 = new List<int>();
                         for (int j = 1; j <= 2; j++)
                         {
-                            for (int i = 1; i <= 9; i++)
+                            foreach (int i in SqlOnCourt.fListCategories.Keys)
                             {
                                 string _nameField = "P" + j + "C" + i;
                                 if (Convert.ToBoolean(rdr[_nameField]))
@@ -1465,7 +1594,6 @@ namespace OnCourtData
                                         _match.ListCategoriesIdP2.Add(i);
                             }
                         }
-                        
                     }
                     try
                     {
@@ -1809,7 +1937,6 @@ namespace OnCourtData
                 }
             }
         }
-    
-
+        
     }
 }

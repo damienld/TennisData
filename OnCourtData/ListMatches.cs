@@ -80,7 +80,52 @@ namespace OnCourtData
             else
                 return list.Where(m => m.TournamentRank == 4).ToList();
         }
-
+        public static List<MatchDetailsWithOdds>
+            getMatchesFilterByRound(int aRound, int aRankTrnMin, List<MatchDetailsWithOdds> list)
+        {
+            if (aRankTrnMin > 2) //MAin Tour
+                aRankTrnMin = 2;
+            if (list == null)
+                return null;
+            else
+                return list.Where(m => m.RoundId == aRound && m.TournamentRank >= aRankTrnMin).ToList();
+        }
+        public static List<MatchDetailsWithOdds>
+            getMatchesWithStats_W_UE(List<MatchDetailsWithOdds> list,string connectionString, bool aIsAtp)
+        {
+            if (list == null)
+                return null;
+            else
+            {
+                return list.Where(m => m.StatsByPlayers != null && m.StatsByPlayers.Count == 2
+                && (m.StatsByPlayers[0].WIS_1 > m.StatsByPlayers[0].ACES_1 || m.StatsByPlayers[1].WIS_1 > m.StatsByPlayers[1].ACES_1))
+                    .ToList();
+            }
+        }
+        public static List<MatchDetailsWithOdds>
+            getMatchesWithStats_SrvSpeed(List<MatchDetailsWithOdds> list, string connectionString, bool aIsAtp)
+        {
+            if (list == null)
+                return null;
+            else
+            {
+                return list.Where(m => m.StatsByPlayers != null && m.StatsByPlayers.Count == 2
+                && m.StatsByPlayers[0].A1S_1 > 0)
+                    .ToList();
+            }
+        }
+        public static List<MatchDetailsWithOdds>
+            getMatches165Min(List<MatchDetailsWithOdds> list, string connectionString, bool aIsAtp)
+        {
+            if (list == null)
+                return null;
+            else
+            {
+                return list.Where(m => m.StatsByPlayers != null && m.StatsByPlayers.Count == 2
+                    && m.StatsByPlayers[0].getMatchTimeinMn() >= 165)
+                        .ToList();
+            }
+        }
         public static List<MatchDetailsWithOdds>
             getMatchesFilterByWind(List<MatchDetailsWithOdds> list
             , List<string> listWindSites)

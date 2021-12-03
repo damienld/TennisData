@@ -15,6 +15,7 @@ namespace OnCourtData
         public List<StatReportPlayer> ListStats { get; set; }
         public List<StatReportPlayer> ListStatsFull { get; set; }
         private List<int> ListCategoriesOpp = null;
+        private Dictionary<int, string> ListCategories = null;
         /// <summary>
         /// 
         /// </summary>
@@ -22,7 +23,8 @@ namespace OnCourtData
         /// <param name="aPlayerName"></param>
         /// <param name="aPositionPlayer"></param>
         /// <param name="aListCategoriesOpp">dont send null, must be new List<int>() at least</param>
-        public ReportPlayer(long aPlayerId, string aPlayerName, int aPositionPlayer, List<int> aListCategoriesOpp)
+        public ReportPlayer(long aPlayerId, string aPlayerName, int aPositionPlayer, List<int> aListCategoriesOpp
+            , Dictionary<int, string> aListCategories)
         {
             PlayerId = aPlayerId;
             PositionPlayer = aPositionPlayer;
@@ -30,6 +32,7 @@ namespace OnCourtData
             ListStats = new List<StatReportPlayer>();
             ListStatsFull = new List<StatReportPlayer>();
             ListCategoriesOpp = aListCategoriesOpp;
+            ListCategories = aListCategories;
         }
         /// <summary>
         /// Calculate Values for html row1 (stats vs ranks)
@@ -378,7 +381,7 @@ namespace OnCourtData
             StatsOnListMatchesForPlayer _priceStats = new StatsOnListMatchesForPlayer(aIsAtp, aListMatchFull, PlayerId
                 , aListCourtsId, ListCategoriesOpp, null, null, null, true);
             //CATEG
-            for (int i = 1; i <= Categorie.fListCategories.Count; i++)
+            for (int i = 1; i <= ListCategories.Count; i++)
             {
                 double diffForAnySetROI = _priceStats.AnySetMarketByCategories[i - 1].getROI() 
                     - _priceStats.AnySetMarket.getROI();
@@ -391,7 +394,7 @@ namespace OnCourtData
                     +"\nAny set: " + diffForAnySetROI + " % (" + _priceStats.AnySetMarketByCategories[i - 1].getROI() 
                     + "v" + _priceStats.AnySetMarket.getROI() + ")";
 
-                StatReportPlayer _s = (new StatReportPlayer(false, Categorie.fListCategories[i]
+                StatReportPlayer _s = (new StatReportPlayer(false, ListCategories[i]
                     , "", _toopTip, true, _priceStats.AnySetMarketByCategories[i - 1].getROI()
                     , _priceStats.AnySetMarketByCategories[i - 1].NbMarkets//, _priceStats.AnySetMarket.getROI() / 100.0
                     , _lastIndexDisplay + i - 1, 0, 8, 16));
