@@ -14,7 +14,7 @@ namespace OnCourtData
 {
     public class SqlOnCourt
     {
-        public static string connectionString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=..\\OnCourt.mdb;User ID=;Jet OLEDB:Database Password=qKbE8lWacmYQsZ2;Persist Security Info=true;";
+        public static string connectionString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=..\\OnCourt.mdb;User ID=;Jet OLEDB:Database Password=XXX;Persist Security Info=true;";
         public static string connectionStringMyRankings = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=..\\MyRankings.mdb;User ID=;Persist Security Info=true;";
         public static string connectionStringMyNotes = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=..\\MyNotes.mdb;User ID=;Persist Security Info=true;";
         public static string connectionStringMyTrn = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=..\\MyTrn.mdb;User ID=;Persist Security Info=true;";
