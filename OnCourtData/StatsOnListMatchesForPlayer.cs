@@ -127,7 +127,7 @@ namespace OnCourtData
         /// </summary>
         [Browsable(false)]
         [XmlIgnore]
-        public List<double> ListCoeffsSimu { get; set; } = new List<double> { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+        public List<double> ListCoeffsSimu { get; set; } = new List<double> { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
         [DisplayName("Simu")]
         [XmlIgnore]
         public virtual int SimuElo {

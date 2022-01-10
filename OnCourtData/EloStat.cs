@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Ratings;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -94,7 +95,7 @@ namespace OnCourtData
                                 : match.ProcessedResult.fNbSetsWonP1;
                             if (isAnySetCalc)
                             {
-                                ratingPlayer = EloRanking.EloRating.UpdateEloRatingLikeTennisAbstractBySet
+                                ratingPlayer = EloRating.UpdateEloRatingBySet
                                 (ratingPlayer
                                 , ratingOpp, aNbPlayedForRatingPlayer, nbMatchesOpp
                                 , match.TournamentRank == 4, match.RoundId, nbSetsWonP1
@@ -104,7 +105,7 @@ namespace OnCourtData
                             }
                             else
                             {
-                                ratingPlayer = EloRanking.EloRating.UpdateEloRatingLikeTennisAbstract
+                                ratingPlayer = EloRating.UpdateEloRatingMatch
                                (ratingPlayer
                                , ratingOpp, aNbPlayedForRatingPlayer, nbMatchesOpp, isWon
                                , match.TournamentRank == 4, match.RoundId);
@@ -112,7 +113,7 @@ namespace OnCourtData
                             }
                             if (aListIdSurfaceOnCourt!=null && aListIdSurfaceOnCourt.Contains(match.CourtId))
                             {
-                                ratingPlayerOnCourt = EloRanking.EloRating.UpdateEloRatingLikeTennisAbstract
+                                ratingPlayerOnCourt = EloRating.UpdateEloRatingMatch
                                     (ratingPlayerOnCourt, ratingOpp, aNbForRatingPlayerOnCourt
                                     , nbMatchesOpp, isWon, match.TournamentRank == 4, match.RoundId);
                                 aNbForRatingPlayerOnCourt += 1;
@@ -120,22 +121,25 @@ namespace OnCourtData
                             if (match.Date >= DateTime.Now.AddMonths(-6))
                             {
                                 /*
-                                hh = 198.2 , parameter scaling the effect of a hard court match on the hard court ratings
-• hc = 144.5 , effect of hard court match on clay court ratings
-• hg = 164.4 , effect of hard court match on grass court ratings
-• cc = 261.8 , effect of clay court match on clay court ratings
-• ch = 180.2 , effect of clay court match on hard court ratings
-• cg = 138.2 , effect of clay court match on grass court ratings
-• gg = 261.8 , effect of grass court match on grass court ratings
-• gh = 188.2 , effect of grass court match on hard court ratings
-• gc = 138.2 , effect of grass court match on clay court ratings
-                                 * */
+
+    • cc = 261.8 , effect of clay court match on clay court ratings
+    • hc = 144.5 , effect of hard court match on clay court ratings
+    • gc = 138.2 , effect of grass court match on clay court ratings
+
+    • hh = 198.2 , parameter scaling the effect of a hard court match on the hard court ratings
+    • ch = 180.2 , effect of clay court match on hard court ratings
+    • gh = 188.2 , effect of grass court match on hard court ratings
+    
+    • gg = 261.8 , effect of grass court match on grass court ratings
+    • hg = 164.4 , effect of hard court match on grass court ratings
+    • cg = 138.2 , effect of clay court match on grass court ratings
+                                     * */
                                 //at the start if started with -1, use ranking of first match, if still -1 then 1200
                                 if (ratingPlayerLast6M < 0)
                                 {
                                     ratingPlayerLast6M = Math.Max(1200, getEloValueFromAtpRank(playerRanking, aIsATP));
                                 }
-                                ratingPlayerLast6M = EloRanking.EloRating.UpdateEloRatingLikeTennisAbstractBySet
+                                ratingPlayerLast6M = EloRating.UpdateEloRatingBySet
                                     (ratingPlayerLast6M, ratingOpp, aNbForRatingPlayerLast6M
                                     , nbMatchesOpp, match.TournamentRank == 4, match.RoundId, nbSetsWonP1
                                     , nbSetsWonP2);
@@ -151,7 +155,7 @@ namespace OnCourtData
                                     {
                                         ratingPlayerLast9MClay = Math.Max(1200, getEloValueFromAtpRank(playerRanking, aIsATP));
                                     }
-                                    ratingPlayerLast9MClay = EloRanking.EloRating.UpdateEloRatingLikeTennisAbstractBySet
+                                    ratingPlayerLast9MClay = EloRating.UpdateEloRatingBySet
                                         (ratingPlayerLast9MClay, ratingOpp, aNbForRatingPlayerLast9MClay
                                         , nbMatchesOpp, match.TournamentRank == 4, match.RoundId, nbSetsWonP1
                                         , nbSetsWonP2);
@@ -164,7 +168,7 @@ namespace OnCourtData
                                     {
                                         ratingPlayerLast9MNonClay = Math.Max(1200, getEloValueFromAtpRank(playerRanking, aIsATP));
                                     }
-                                    ratingPlayerLast9MNonClay = EloRanking.EloRating.UpdateEloRatingLikeTennisAbstractBySet
+                                    ratingPlayerLast9MNonClay = EloRating.UpdateEloRatingBySet
                                         (ratingPlayerLast9MNonClay, ratingOpp, aNbForRatingPlayerLast9MNonClay
                                         , nbMatchesOpp, match.TournamentRank == 4, match.RoundId, nbSetsWonP1
                                         , nbSetsWonP2);

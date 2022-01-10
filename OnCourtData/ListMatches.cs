@@ -88,7 +88,7 @@ namespace OnCourtData
             if (list == null)
                 return null;
             else
-                return list.Where(m => m.RoundId == aRound && m.TournamentRank >= aRankTrnMin).ToList();
+                return list.Where(m => m.RoundId == aRound && m.TournamentRank >= aRankTrnMin && m.TournamentRank <= 4).ToList();
         }
         public static List<MatchDetailsWithOdds>
             getMatchesWithStats_W_UE(List<MatchDetailsWithOdds> list,string connectionString, bool aIsAtp)

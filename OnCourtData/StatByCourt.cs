@@ -37,6 +37,11 @@ namespace OnCourtData
             return res;
         }
         public string DisplayAllStats(AceReportPlayer statsParent
+            , int aIndexCourt3Values)
+        {
+            return DisplayAllStats(statsParent, Court.getCourtindexForStatsWithNonClayAndClayOnly2(aIndexCourt3Values));
+        }
+            public string DisplayAllStats(AceReportPlayer statsParent
             , List<int> aListIndexOfAll6Courts)
         {
             string res = "";

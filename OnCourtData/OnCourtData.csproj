@@ -103,9 +103,9 @@
       <Project>{00d62315-8d39-4adc-93df-9cbef1e12061}</Project>
       <Name>Serialization</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\EloRanking\EloRanking\EloRanking.csproj">
+    <ProjectReference Include="..\..\..\Ratings\Ratings.csproj">
       <Project>{c471e86f-60f7-4f63-b657-97ead3e69f28}</Project>
-      <Name>EloRanking</Name>
+      <Name>Ratings</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

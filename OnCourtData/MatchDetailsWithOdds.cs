@@ -28,7 +28,7 @@ namespace OnCourtData
             + "CourtId,RoundId,Round,P1Id,P1,P2Id,P2,"
             + "Result,IndexP,Player,AceRatePlayer,Srv1PtsP1,Srv1PtsWonP1,Srv2PtsP1,Srv2PtsWonP1,"
              + "Rk1,Rk2,Odds1,Odds2,IsCompleted,P1ServingFirst,"
-                + "StatusP1,StatusP2,SetsP1,SetsP2,GamesP1,GamesP2,S1,S2,S3,S4,S5,S1_2,S2_2,S3_2,S4_2,S5_2"
+                + "StatusP1,StatusP2,SetsP1,SetsP2,GamesP1,GamesP2,S1,S2,S3,S4,S5,S1_2,S2_2,S3_2,S4_2,S5_2,Duration,Age1,Age2"
             ;
         /// <summary>
         /// TODO
@@ -69,6 +69,9 @@ namespace OnCourtData
                 + $",{listSetResultsForP1[4]},{listSetResultsForP2[0]}"
                 + $",{listSetResultsForP2[1]},{listSetResultsForP2[2]}"
                 + $",{listSetResultsForP2[3]},{listSetResultsForP2[4]}"
+                + $",{this.StatsByPlayers[indexPlayer].getMatchTimeinMn()}"
+                + $",{Common.GetAge(DOB1, this.Date)}"
+                + $",{Common.GetAge(DOB2, this.Date)}"
                 ;
         }
 

@@ -7,6 +7,19 @@ namespace OnCourtData
 {
     public class Common
     {
+        public static double GetAge(DateTime? dob, DateTime? today)
+        {
+
+            if (dob != null && today != null)
+            {
+                TimeSpan diff = (today.Value - dob.Value);
+                return Math.Round(diff.TotalDays / 365.25, 1);
+            }
+            else
+                return -1;
+
+        }
+
         public static void getRankingIntervallFromRank(int aRank, ref int aRank1, ref int aRank2)
         {
             int gap1 = 0;
