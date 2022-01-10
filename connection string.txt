@@ -1,1 +1,0 @@
-Provider=Microsoft.Jet.OLEDB.4.0;Data Source=D:\Visual Studio 2010\Projects\OnCourtData\OnCourt.mdb;User ID=;Jet OLEDB:Database Password=qKbE8lWacmYQsZ2;Persist Security Info=true;
