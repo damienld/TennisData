@@ -99,7 +99,7 @@ namespace OnCourtData
                                 (ratingPlayer
                                 , ratingOpp, aNbPlayedForRatingPlayer, nbMatchesOpp
                                 , match.TournamentRank == 4, match.RoundId, nbSetsWonP1
-                                    , nbSetsWonP2);
+                                    , nbSetsWonP2, nbSetsWonP1 + nbSetsWonP2);
                                 aNbPlayedForRatingPlayer += match.ProcessedResult.fNbSetsWonP1
                                     + match.ProcessedResult.fNbSetsWonP2;
                             }
@@ -108,14 +108,14 @@ namespace OnCourtData
                                 ratingPlayer = EloRating.UpdateEloRatingMatch
                                (ratingPlayer
                                , ratingOpp, aNbPlayedForRatingPlayer, nbMatchesOpp, isWon
-                               , match.TournamentRank == 4, match.RoundId);
+                               , match.TournamentRank == 4, match.RoundId, nbSetsWonP1 + nbSetsWonP2);
                                 aNbPlayedForRatingPlayer += 1;
                             }
                             if (aListIdSurfaceOnCourt!=null && aListIdSurfaceOnCourt.Contains(match.CourtId))
                             {
                                 ratingPlayerOnCourt = EloRating.UpdateEloRatingMatch
                                     (ratingPlayerOnCourt, ratingOpp, aNbForRatingPlayerOnCourt
-                                    , nbMatchesOpp, isWon, match.TournamentRank == 4, match.RoundId);
+                                    , nbMatchesOpp, isWon, match.TournamentRank == 4, match.RoundId, nbSetsWonP1 + nbSetsWonP2);
                                 aNbForRatingPlayerOnCourt += 1;
                             }
                             if (match.Date >= DateTime.Now.AddMonths(-6))
@@ -142,7 +142,7 @@ namespace OnCourtData
                                 ratingPlayerLast6M = EloRating.UpdateEloRatingBySet
                                     (ratingPlayerLast6M, ratingOpp, aNbForRatingPlayerLast6M
                                     , nbMatchesOpp, match.TournamentRank == 4, match.RoundId, nbSetsWonP1
-                                    , nbSetsWonP2);
+                                    , nbSetsWonP2, nbSetsWonP1 + nbSetsWonP2);
                                 aNbForRatingPlayerLast6M += match.ProcessedResult.fNbSetsWonP1
                                     + match.ProcessedResult.fNbSetsWonP2;
                             }
@@ -158,7 +158,7 @@ namespace OnCourtData
                                     ratingPlayerLast9MClay = EloRating.UpdateEloRatingBySet
                                         (ratingPlayerLast9MClay, ratingOpp, aNbForRatingPlayerLast9MClay
                                         , nbMatchesOpp, match.TournamentRank == 4, match.RoundId, nbSetsWonP1
-                                        , nbSetsWonP2);
+                                        , nbSetsWonP2, nbSetsWonP1 + nbSetsWonP2);
                                     aNbForRatingPlayerLast9MClay += match.ProcessedResult.fNbSetsWonP1
                                         + match.ProcessedResult.fNbSetsWonP2;
                                 }
@@ -171,7 +171,7 @@ namespace OnCourtData
                                     ratingPlayerLast9MNonClay = EloRating.UpdateEloRatingBySet
                                         (ratingPlayerLast9MNonClay, ratingOpp, aNbForRatingPlayerLast9MNonClay
                                         , nbMatchesOpp, match.TournamentRank == 4, match.RoundId, nbSetsWonP1
-                                        , nbSetsWonP2);
+                                        , nbSetsWonP2, nbSetsWonP1 + nbSetsWonP2);
                                     aNbForRatingPlayerLast9MNonClay += match.ProcessedResult.fNbSetsWonP1
                                         + match.ProcessedResult.fNbSetsWonP2;
                                 }

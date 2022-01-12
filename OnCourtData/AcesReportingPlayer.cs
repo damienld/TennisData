@@ -154,10 +154,10 @@ namespace OnCourtData
                 AceReportPlayer item = listReportPlayer[i];
                 double coeffThisYear = 1;
                 if (item.Year >= yearEnd - 1)
-                    coeffThisYear = 1.2;
+                    coeffThisYear = 1.5;//1.2
                 else if(item.Year >= yearEnd - 2)
-                    coeffThisYear = 0.9;
-                else coeffThisYear = 0.7;
+                    coeffThisYear = 1;//0.9
+                else coeffThisYear = 0.7;//0.7
                 if (aListIndexOfAll4Courts == null)
                 {//all courts
                     int idCourt = 0;

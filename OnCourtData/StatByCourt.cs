@@ -36,12 +36,12 @@ namespace OnCourtData
             }
             return res;
         }
-        public string DisplayAllStats(AceReportPlayer statsParent
+        /*public string DisplayAllStats(AceReportPlayer statsParent
             , int aIndexCourt3Values)
         {
             return DisplayAllStats(statsParent, Court.getCourtindexForStatsWithNonClayAndClayOnly2(aIndexCourt3Values));
-        }
-            public string DisplayAllStats(AceReportPlayer statsParent
+        }*/
+        public string DisplayAllStats(AceReportPlayer statsParent
             , List<int> aListIndexOfAll6Courts)
         {
             string res = "";
@@ -62,20 +62,30 @@ namespace OnCourtData
                 int nbMatches = 0;
                 foreach (var indexCourt in aListIndexOfAll6Courts)
                 {//for each listed court
-                    int _indexCourt1to4 = indexCourt;
+                    /*int _indexCourt1to4 = indexCourt;
                     if (indexCourt == 5) //grass
                         _indexCourt1to4 = 4;
                     if (typeof(T) == typeof(double))
                         countStat += Convert.ToDouble(this[_indexCourt1to4]);
                     else
                         countStat += Convert.ToInt16(this[_indexCourt1to4]);
-                    nbMatches += statsParent.NbMatchesByCourt[_indexCourt1to4];
-                    //res += "-";
+                    nbMatches += statsParent.NbMatchesByCourt[_indexCourt1to4];*/
+                    //NEW
+                    int idCourt = Court.getCourtindexBetween4Base1(indexCourt);
+                    nbMatches += statsParent.NbMatchesByCourt[idCourt];
+                    if (typeof(T) == typeof(double))
+                        countStat += Convert.ToDouble(this[idCourt])
+                            * statsParent.NbMatchesByCourt[idCourt];
+                    else
+                        countStat += Convert.ToInt16(this[idCourt]) 
+                            * statsParent.NbMatchesByCourt[idCourt];
+                    //sumAcesOpp += item.MatchAvgAceRateByCourtPctOpp[idCourt] * item.NbMatchesByCourt[idCourt];
                 }
-                if (typeof(T) == typeof(double))
-                    res += String.Format("{0:0.00}", countStat);
+                res += Math.Round(countStat / nbMatches, 1);
+                /*if (typeof(T) == typeof(double))
+                    res += String.Format("{0:0.00}", countStat/nbMatches);
                 else
-                    res += countStat;
+                    res += String.Format("{0:0.00}", countStat / nbMatches);*/
                 if (nbMatches < 15)
                     res += $"({nbMatches})";
             }
